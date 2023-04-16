@@ -1,0 +1,27 @@
+// tasks.json
+{
+    // https://code.visualstudio.com/docs/editor/tasks
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "group": "rtt",
+            "task": "rtt",
+            "label": "rtt",
+            "type": "shell",
+            "command": "JLinkRTTClientExe",
+            "args": [],
+            "problemMatcher": [],
+            "name": "rtt"
+        },
+        {
+            "type": "PlatformIO",
+            "task": "Build (genericSTM32F412RE)",
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "group": "build",
+            "label": "PlatformIO: Build (genericSTM32F412RE)"
+        }
+
+    ]
+}

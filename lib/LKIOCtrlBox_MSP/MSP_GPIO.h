@@ -9,6 +9,7 @@
 //#include "SlaveBoardConfig.h"
 #include "SPITransfer_C.h"
 #include <stdio.h>
+#include "LOG.h"
 
 #ifdef DEVBoard
 #define KEY_Pin                         GPIO_PIN_13

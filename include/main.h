@@ -5,16 +5,25 @@
   * @brief          : Header for main.c file.
   *                   This file contains the common defines of the application.
   ******************************************************************************
-  * @attention
+  * @attention      : 2023-04-11  V0.0.4
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
+  *       1、usart1用于打印测试信息
+  *           PA9     ------> USART1_TX
+  *           PA10    ------> USART1_RX
+  *           BaudRate = 115200
+  *           
+  *       2、usart2用做modbus从站使用，slaveID默认为0x01
+  *           PA2     ------> USART1_TX
+  *           PA3     ------> USART1_RX
+  *           BaudRate = 921600
+  *           采用dma方式
+  *           
+  *       3、spi1设置为主模式，用于跟slave板通讯
+  *           PA4     ------> SPI1_NSS
+  *           PA5     ------> SPI1_SCK
+  *           PA6     ------> SPI1_MISO
+  *           PA7     ------> SPI1_MOSI
+  * 
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -29,7 +38,10 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "stdio.h"
+#include "stdarg.h"
 
+//#include <SEGGER_RTT.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -44,6 +56,7 @@ extern "C" {
 #include "Modbus.h"
 #include "cmsis_os.h"
 #include "dma.h"
+#include "LOG.h"
 //#include "tftlcd.h"
 //#include "w25qxx.h"
 /* USER CODE END Includes */
@@ -64,7 +77,7 @@ extern "C" {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+
 
 /* Private defines -----------------------------------------------------------*/
 #if 0
@@ -97,6 +110,9 @@ void Error_Handler(void);
 //#define CLEAR_BIT(reg, bit) ((reg) &= ~(1 << (bit)))
 #define isBIT_SET(reg, bit)  ((reg) & (1 << (bit)))         //(reg & (1 << bit)) >> bit
 //#define TOGGLE_BIT(reg, bit) ((reg) ^= (1 << (bit)))
+
+#define ModbusDATASize            600     //modubs协议中，存放数据的寄存器长度
+//#define ModbusDATA_AddrOffset     1536    //0x0600
 
 typedef int32_t  s32;
 typedef int16_t s16;
@@ -138,9 +154,12 @@ typedef struct
 
 }SlaveBoardStatus_TypeDef;
 */
-
+#define printf LOG
+extern DMA_HandleTypeDef hdma_usart1_tx;
+void Error_Handler(void);
+extern uint8_t USART_DMA_TX_OVER;
 extern modbusHandler_t ModbusH;
-extern uint16_t ModbusDATA[128];
+extern uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
 extern SlaveBoardHandler_t SlaveBoardH[8];
 //extern SlaveBoardHandler_t D_I_1_BoardH, D_I_2_BoardH, D_I_3_BoardH, D_I_4_BoardH, D_Q_1_BoardH, D_Q_2_BoardH, MENU_BoardH, RS485_BoardH;
 

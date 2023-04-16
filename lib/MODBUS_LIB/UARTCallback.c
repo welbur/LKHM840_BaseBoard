@@ -8,7 +8,7 @@
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"
-//#include "main.h"
+#include "main.h"
 #include "Modbus.h"
 
 
@@ -20,25 +20,33 @@
  * Modbus functionality.
  * @ingroup UartHandle UART HAL handler
  */
-
+#if 1
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	//printf("txcallback\r\n");
-	/* Modbus RTU TX callback BEGIN */
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	int i;
-	for (i = 0; i < numberHandlers; i++ )
+	//LOGI("txcallback\r\n");
+	if (huart->Instance == USART1) 
 	{
-	   	if (mHandlers[i]->port == huart  )
-	   	{
-	   		// notify the end of TX
-	   		xTaskNotifyFromISR(mHandlers[i]->myTaskModbusAHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
-	   		break;
-	   	}
-
+		//USART_DMA_TX_OVER = 1;
+		//LED_G_TogglePin;
+		//LED_R(1-USART_DMA_TX_OVER);
+		//__HAL_DMA_DISABLE(&hdma_usart1_tx);
+	} else if (huart->Instance == USART2) 
+	{
+		/* Modbus RTU TX callback BEGIN */
+		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		int i;
+		for (i = 0; i < numberHandlers; i++ )
+		{
+	   		if (mHandlers[i]->port == huart  )
+	   		{
+	   			// notify the end of TX
+	   			xTaskNotifyFromISR(mHandlers[i]->myTaskModbusAHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+	   			break;
+	   		}
+		}
+		portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 	}
-	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
-
+	
 	/* Modbus RTU TX callback END */
 
 	/*
@@ -46,7 +54,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	 *
 	 * */
 }
-
+#endif
 
 #if 1
 /**

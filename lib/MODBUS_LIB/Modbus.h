@@ -164,6 +164,20 @@ tcpclients_t;
 
 #endif
 
+/**
+ * @struct FC_StartAddr_t
+ * @brief
+ * 
+ * 
+ */
+typedef struct
+{
+    uint16_t FC15_u16StartCoil;     
+    uint16_t FC15_u16regsno;     
+    uint16_t FC16_u16StartAddr; 
+    uint16_t FC16_u16regsno;
+}
+FC_Addr_t;
 
 /**
  * @struct modbusHandler_t
@@ -194,6 +208,11 @@ typedef struct
     uint8_t spiRx_uartTx_u8regs_size;
 
 	//FreeRTOS components
+
+    // FC_Addr_t
+    FC_Addr_t  FCAddrHandle;
+
+    uint8_t FCStatus[17];
 
 	//Queue Modbus Telegram
 	osMessageQueueId_t QueueTelegramHandle;

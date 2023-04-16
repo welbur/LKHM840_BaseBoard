@@ -8,6 +8,7 @@
 #include "stm32f4xx_hal.h"
 #include "stdio.h"
 #include "SPITransfer_C.h"
+//#include "LOG.h"
 //#include "SlaveBoardConfig.h"
 //#include "MSP_GPIO.h"
 //#include "../../include/spi.h"
@@ -44,8 +45,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle);
 
 void SPITransfer_Init(void);
 
-uint8_t MSP_SPI_write(SPI_HandleTypeDef* spiHandle, uint8_t cs, uint8_t *txData, uint16_t txLen);
-uint8_t MSP_SPI_read(SPI_HandleTypeDef* spiHandle, uint8_t cs, uint8_t *rxData, uint16_t rxLen);
+uint8_t MSP_SPI_write(SPI_HandleTypeDef* spiHandle, uint8_t *txData, uint16_t txLen);
+uint8_t MSP_SPI_read(SPI_HandleTypeDef* spiHandle, uint8_t *rxData, uint16_t rxLen);
 
 uint8_t SPI1_WriteData(uint8_t *data,uint16_t size);
 uint8_t SPI2_ReadWriteByte(uint8_t TxData);

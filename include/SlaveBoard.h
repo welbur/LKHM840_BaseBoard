@@ -160,9 +160,13 @@
                                         }while(0)
 
 #define SlaveBoard_Max                  8       //定义板子的数量 di板4块，dq板2块，rs485板1块，menu板1块
+#define DIBoard_NO                      4       //定义DI板子的数量 4块
 #define sTrans_TimeOut                  100       //5 = 5ms
 #define sTxRx_TimeOut                   1
 #define spiRxDataLen                    100
+
+#define RxFlag                          1
+#define TxFlag                          2
 
 //复制一个数组到另一个数组
 #define COPY_ARRAY(dest, src, len) memcpy(dest, src, (len) * sizeof((src)[0]))
@@ -232,10 +236,13 @@ typedef enum
 typedef struct
 {
   BoardID_TypeDef           BoardID;
-  uint8_t                   isBoardEnable;
+  uint8_t                   isBoard_Rx_En;
+  uint8_t                   isBoard_Tx_En;
   SpiTransStatus_TypeDef    spiTransState;
   uint8_t                   spiRx_uartTx_Buffer[spiRxDataLen];
   uint8_t                   spiTx_uartRx_Buffer[spiRxDataLen];
+  uint8_t                   spiRx_uartTx_Buffer_Size;
+  uint8_t                   spiTx_uartRx_Buffer_Size;
 
   uint8_t                  *spiRx_uartTx_u8regs;
   uint8_t                  *spiTx_uartRx_u8regs;

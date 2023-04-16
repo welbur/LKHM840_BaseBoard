@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../LKIOCtrlBox_SlaveBoard_STM32_V001"
+		}
+	],
+	"settings": {}
+}

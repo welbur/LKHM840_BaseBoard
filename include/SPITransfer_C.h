@@ -10,6 +10,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "SlaveBoard.h"
+#include "LOG.h"
 
 
 #if 0
@@ -236,7 +237,7 @@ typedef struct
 #endif
 
 extern void *SPITransfer_C_New(SlaveBoardHandler_t *slavebH, SPI_HandleTypeDef *theSPI, uint8_t master);
-extern void SPITransfer_C_Master_Spi1_Transfer(void *SpiTrans, BoardID_TypeDef boardID);
+extern void SPITransfer_C_Master_Spi1_Transfer(void *SpiTrans, uint8_t TxRxFlag, BoardID_TypeDef boardID);
 
 
 #ifdef __cplusplus

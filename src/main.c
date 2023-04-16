@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+//#include "SEGGER_RTT.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -33,7 +34,8 @@
 /* Private define ------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-#if 1
+//uint8_t USART_DMA_TX_OVER = 1;
+#ifdef UartPrintf
 #ifdef __GNUC__
   /* With GCC, small printf (option LD Linker->Libraries->Small printf
      set to 'Yes') calls __io_putchar() */
@@ -46,13 +48,15 @@
 
 /*modbus相关参数*/
 modbusHandler_t ModbusH;
-uint16_t ModbusDATA[128];
+uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
 
 /*Slave Board相关参数*/
 SlaveBoardHandler_t D_I_1_BoardH, D_I_2_BoardH, D_I_3_BoardH, D_I_4_BoardH, D_Q_1_BoardH, D_Q_2_BoardH, MENU_BoardH, RS485_BoardH;
 uint8_t DI1_DATA[128], DI2_DATA[128], DI3_DATA[128], DI4_DATA[128], DQ1_DATA[128], DQ2_DATA[128], MENU_DATA[128], RS485_DATA[128];
 SlaveBoardHandler_t SlaveBoardH[8];
 /* Private function prototypes -----------------------------------------------*/
+
+
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 void DI_Board_Init(void);
@@ -98,36 +102,44 @@ int main(void)
 	ModbusH.u16regsize = sizeof(ModbusDATA) / sizeof(ModbusDATA[0]);
 	ModbusH.xTypeHW = USART_HW_DMA;
 #endif
-  printf("start modbus...\r\n");
-	// Initialize Modbus library
-	ModbusInit(&ModbusH);
+	// Initialize Modbus library	
+  ModbusInit(&ModbusH);
 	// Start capturing traffic on serial Port
 	ModbusStart(&ModbusH);
 	/***********/
-
-  printf("start FreeRTOS\r\n");
+  uint8_t tt = 10;
+  LOGE("start Modbud......%d......%d\r\n", tt, tt);
+  LOGI("start Modbud\r\n");
+  LOGW("start Modbud\r\n");
 
   /*Slave板状态 初始化*/
   D_I_1_BoardH.BoardID = DI_Board_1;
-  D_I_1_BoardH.isBoardEnable = 0;
+  D_I_1_BoardH.isBoard_Rx_En = 0;
   D_I_1_BoardH.spiRx_uartTx_u8regs = DI1_DATA;
   D_I_1_BoardH.spiRx_uartTx_u8regs_size = sizeof(DI1_DATA) / sizeof(DI1_DATA[0]);
   D_I_1_BoardH.spiTransState = SpiTrans_Wait;
   SlaveBoardH[DI_Board_1] = D_I_1_BoardH;
 
   D_I_2_BoardH.BoardID = DI_Board_2;
-  D_I_2_BoardH.isBoardEnable = 0;
+  D_I_2_BoardH.isBoard_Rx_En = 0;
   D_I_2_BoardH.spiRx_uartTx_u8regs = DI2_DATA;
   D_I_2_BoardH.spiRx_uartTx_u8regs_size = sizeof(DI2_DATA) / sizeof(DI2_DATA[0]);
   D_I_2_BoardH.spiTransState = SpiTrans_Wait;
   SlaveBoardH[DI_Board_2] = D_I_2_BoardH;
 
   D_Q_1_BoardH.BoardID = DQ_Board_1;
-  D_Q_1_BoardH.isBoardEnable = 0;
-  D_Q_1_BoardH.spiRx_uartTx_u8regs = DQ1_DATA;
+  D_Q_1_BoardH.isBoard_Rx_En = 0;
+  D_Q_1_BoardH.spiRx_uartTx_u8regs = DQ1_DATA;  //spiTx_uartRx_u8regs
   D_Q_1_BoardH.spiRx_uartTx_u8regs_size = sizeof(DQ1_DATA) / sizeof(DQ1_DATA[0]);
   D_Q_1_BoardH.spiTransState = SpiTrans_Wait;
   SlaveBoardH[DQ_Board_1] = D_Q_1_BoardH;
+
+  D_Q_2_BoardH.BoardID = DQ_Board_2;
+  D_Q_2_BoardH.isBoard_Rx_En = 0;
+  D_Q_2_BoardH.spiRx_uartTx_u8regs = DQ2_DATA;  //spiTx_uartRx_u8regs
+  D_Q_2_BoardH.spiRx_uartTx_u8regs_size = sizeof(DQ2_DATA) / sizeof(DQ2_DATA[0]);
+  D_Q_2_BoardH.spiTransState = SpiTrans_Wait;
+  SlaveBoardH[DQ_Board_2] = D_Q_2_BoardH;
   //SlaveBoardStatus.sTransState = SpiTrans_Wait;
 
   /* Infinite loop */
@@ -141,8 +153,6 @@ int main(void)
 
   while (1)
   {
-  //  printf("start loop\r\n");
-  //  osDelay(100);
   }
 }
 
@@ -195,12 +205,16 @@ void SystemClock_Config(void)
 }
 #endif
 
+#ifdef UartPrintf
 PUTCHAR_PROTOTYPE
 {
   /* e.g. write a character to the USART1 and Loop until the end of transmission */
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  //HAL_UART_Transmit_IT(&huart1, (uint8_t *)&ch, 1);
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 2);
+
   return ch;
 }
+#endif
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -209,7 +223,11 @@ PUTCHAR_PROTOTYPE
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  printf("error handler!\r\n");
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -224,31 +242,29 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   switch (GPIO_Pin) 
   {
     case KEY_Pin:
-//      SlaveBoardH[DI_Board_1].isBoardEnable = 1;
+      SlaveBoardH[DI_Board_1].isBoard_Rx_En = 1;
 //      SlaveBoardH[DI_Board_2].isBoardEnable = 1;
 //      SlaveBoardH[DI_Board_3].isBoardEnable = 1;
 //      SlaveBoardH[DI_Board_4].isBoardEnable = 1;
 //      SlaveBoardH[DQ_Board_1].isBoardEnable = 1;
-      printf("DEV button........\r\n");
+      LOGI("DEV button........\r\n");
       ledg_v = 1 - ledg_v;
       LED_R(ledg_v);
-      //osDelay(1000);
       break;
 #if 1 //DEVBoard
     case DIB_INT_PIN1:
-      SlaveBoardH[DI_Board_1].isBoardEnable = 1;//D_I_1_BoardH.isBoardEnable = 1;
-      printf("di board 1 int pin........%d\r\n", SlaveBoardH[DI_Board_1].isBoardEnable);
+      SlaveBoardH[DI_Board_1].isBoard_Rx_En = 1;//D_I_1_BoardH.isBoardEnable = 1;
       break;
 #endif
     case DIB_INT_PIN2:
-      SlaveBoardH[DI_Board_2].isBoardEnable = 1;
+      SlaveBoardH[DI_Board_2].isBoard_Rx_En = 1;
       break;
     case DQB_INT_PIN1:
-      SlaveBoardH[DQ_Board_1].isBoardEnable = 1;
-      //printf("DQ board 1 int pin........%d\r\n", SlaveBoardStatus.activeBoard);
+      SlaveBoardH[DQ_Board_1].isBoard_Rx_En = 1;
+      //LOGI("DQ board 1 int pin........%d\r\n", SlaveBoardStatus.activeBoard);
       break;
     default:
-      printf("int gpio pin not found!");
+      LOGE("int gpio pin not found!");
   }
 }
 

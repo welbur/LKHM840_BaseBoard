@@ -58,6 +58,8 @@
 /* External variables --------------------------------------------------------*/
 extern SPI_HandleTypeDef hspi1;
 extern SPI_HandleTypeDef hspi2;
+extern DMA_HandleTypeDef hdma_usart1_rx;
+extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart1;
@@ -78,7 +80,7 @@ extern TIM_HandleTypeDef htim2;
   */
 void EXTI0_IRQHandler(void)
 {
-  printf("exti0 irq\r\n");
+  LOGI("exti0 irq\r\n");
 }
 /**
   * @brief  This function handles External line 3 interrupt request.
@@ -240,6 +242,34 @@ void SysTick_Handler(void)
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
 /**
+  * @brief This function handles DMA2 stream2 global interrupt.
+  */
+void DMA2_Stream2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_rx);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream7 global interrupt.
+  */
+void DMA2_Stream7_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream7_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+  /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream7_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream5 global interrupt.
   */
 void DMA1_Stream5_IRQHandler(void)
@@ -248,7 +278,7 @@ void DMA1_Stream5_IRQHandler(void)
 
   /* USER CODE END DMA1_Stream5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
-  //printf("dma1 stream5 rx irq \r\n");
+  //LOGI("dma1 stream5 rx irq \r\n");
   /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
 
   /* USER CODE END DMA1_Stream5_IRQn 1 */
@@ -263,7 +293,7 @@ void DMA1_Stream6_IRQHandler(void)
 
   /* USER CODE END DMA1_Stream6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_tx);
-  //printf("dma1 stream6 tx irq \r\n");
+  //LOGI("dma1 stream6 tx irq \r\n");
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
 
   /* USER CODE END DMA1_Stream6_IRQn 1 */
@@ -306,7 +336,7 @@ void USART2_IRQHandler(void)
 
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
-//  printf("usart2 irq \r\n");
+//  LOGI("usart2 irq \r\n");
   /* USER CODE BEGIN USART2_IRQn 1 */
 
   /* USER CODE END USART2_IRQn 1 */
@@ -319,7 +349,7 @@ void USART2_IRQHandler(void)
   */
 void SPI1_IRQHandler(void)
 {
-  //printf("spi2 irq.....\r\n");
+  //LOGI("spi2 irq.....\r\n");
   HAL_SPI_IRQHandler(&hspi1);
 }
 
@@ -330,7 +360,7 @@ void SPI1_IRQHandler(void)
   */
 void SPI2_IRQHandler(void)
 {
-  //printf("spi2 irq.....\r\n");
+  //LOGI("spi2 irq.....\r\n");
   HAL_SPI_IRQHandler(&hspi2);
 }
 

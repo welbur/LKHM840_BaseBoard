@@ -1,9 +1,9 @@
-//#include "Arduino.h"
+// #include "Arduino.h"
 
-//#if not(defined(MBED_H) || defined(__SAM3X8E__) || defined(DISABLE_SPI_SERIALTRANSFER)) // These boards are/will not be supported by SPITransfer.h
+// #if not(defined(MBED_H) || defined(__SAM3X8E__) || defined(DISABLE_SPI_SERIALTRANSFER)) // These boards are/will not be supported by SPITransfer.h
 
 #include "SPITransfer.h"
-//#include "SPITransfer_C.h"
+#include "SPITransfer_C.h"
 
 /*!
  *    @brief  Create an SPI device with the given CS pin and settings
@@ -15,10 +15,10 @@
  *    @param  theSPI The SPI bus to use, defaults to &theSPI
  */
 #if 1
-SPITransfer::SPITransfer(SlaveBoardHandler_t *slavebH, SPI_HandleTypeDef *theSPI, bool master) 
+SPITransfer::SPITransfer(SlaveBoardHandler_t *slavebH, SPI_HandleTypeDef *theSPI, bool master)
 {
 	_slavebH = slavebH;
-  	_spi = theSPI;
+	_spi = theSPI;
 	_master = master;
 	_cs = _slavebH->BoardID;
 	begin(false);
@@ -64,8 +64,8 @@ void SPITransfer::begin(const configST configs)
 */
 void SPITransfer::begin(const bool _debug)
 {
-	//初始化spi//_spi->begin();
-	//设置spi为主模式//_spi->setSlaveMode(_slave);
+	// 初始化spi//_spi->begin();
+	// 设置spi为主模式//_spi->setSlaveMode(_slave);
 	packet.begin(_debug);
 	_begun = true;
 }
@@ -89,236 +89,185 @@ void SPITransfer::endTransaction(void)
 }
 #endif
 
-/*!
- *    @brief  Write a buffer or two to the SPI device, with transaction
- * management.
- *    @param  buffer Pointer to buffer of data to write
- *    @param  len Number of bytes from buffer to write
- *    @param  prefix_buffer Pointer to optional array of data to write before
- * buffer.
- *    @param  prefix_len Number of bytes from prefix buffer to write
- *    @return Always returns true because there's no way to test success of SPI
- * writes
+/**
+ * @brief  Master_writeACKto_Slave
+ * @param  cs: 指向Slave板的cs引脚
+ * @note   Master板 发送同步信号给Slave板.
+ * @retval 发送成功 返回 1； 发送失败 返回 0
  */
-bool SPITransfer::write(uint8_t *buffer, size_t len,
-                        //const uint8_t *prefix_buffer, size_t prefix_len,
-						uint8_t cs) 
+bool SPITransfer::Master_writeSyncto_Slave(uint8_t txData)
 {
-	//uint8_t * prebuffer = (uint8_t *)prefix_buffer;
-	if (cs != -1) _cs = cs;
-	//if (!MSP_SPI_write(_spi, _cs, prebuffer, prefix_len)) return false;
-	if (!MSP_SPI_write(_spi, _cs, buffer, len)) return false;
-
-	return true;
+	return (bool)MSP_SPI_write(_spi, &txData, 1);
 }
 
-/*!
- *    @brief  Read from SPI into a buffer from the SPI device, with transaction
- * management.
- *    @param  buffer Pointer to buffer of data to read into
- *    @param  len Number of bytes from buffer to read.
- *    @return Always returns true because there's no way to test success of SPI
- * writes
+/**
+ * @brief  Master_SyncWith_Slave
+ * @param  rxData: ack数据
+ * @note   slave板 读取slave板发送过来的ack信号.
+ * @retval 发送成功 返回 1； 发送失败 返回 0
  */
-bool SPITransfer::read(uint8_t *buffer, size_t len, uint8_t cs) {
-	if (cs != -1) _cs = cs;
-	if (!MSP_SPI_read(_spi, _cs, buffer, len)) return false;
-	
-  	return true;
-}
-
-/**
-  * @brief  Master_writeACKto_Slave
-  * @param  cs: 指向Slave板的cs引脚
-  * @note   Master板 发送ack信号给Slave板.
-  * @retval 发送成功 返回 1； 发送失败 返回 0
-  */
-bool SPITransfer::Master_writeACKto_Slave(uint8_t cs)
+bool SPITransfer::Master_SyncWith_Slave(uint8_t rxData)
 {
-	if (cs != -1) _cs = cs;
-  	return (bool)MSP_SPI_write(_spi, _cs, &SPI_MASTER_ACK, 1);
+	uint8_t rxack;
+	uint32_t msTickstart = xTaskGetTickCount();
+	do
+	{
+		if (!MSP_SPI_read(_spi, &rxack, 1))
+		{
+		} 
+		LOGI("rxack : %d\r\n", rxack);
+		if (rxack == rxData)
+		{
+			return true;
+		}
+	} while ((xTaskGetTickCount() - msTickstart) < 10); //{0xAC, 0xA0, 0xB0, 0x30, 0xE1};
+	//LOGI("timeout ...msTickstart : %ld\r\n", (HAL_GetTick() - msTickstart));
+	return false;
 }
 
-/**
-  * @brief  Master_readACKfrom_Slave
-  * @param  cBoard: 指向Slave板的cs引脚
-  * @note   Master板 读取Slave板发送过来的ack信号.
-  * @retval 发送成功 返回 1； 发送失败 返回 0
-  */
-bool SPITransfer::Master_readACKfrom_Slave(uint8_t cs)
-{
-  	uint8_t rxack;
-  	uint32_t msTickstart = HAL_GetTick();
-	
-	if (cs != -1) _cs = cs;
-  	do
-  	{
-    	if (!MSP_SPI_read(_spi, _cs, &rxack, 1)) return false;
-		if ((HAL_GetTick() - msTickstart) > sTxRx_TimeOut) {
-      		printf("spi rx timeout....\r\n");
-      		return false;
-    	}
-  	} while (rxack != SPI_SLAVE_ACK);
-  	return true;
-}
-
-/**
-  * @brief  Master_writeENDto_Slave
-  * @param  cs: 指向Slave板的cs引脚
-  * @note   Master板 发送END信号给Slave板.
-  * @retval 发送成功 返回 1； 发送失败 返回 0
-  */
-bool SPITransfer::Master_writeENDto_Slave(uint8_t cs)
-{
-	if (cs != -1) _cs = cs;
-  	return (bool)MSP_SPI_write(_spi, _cs, &SPI_Trans_END, 1);
-}
-
-/*
- uint8_t SPITransfer::Master_writeCMDto_Slave(const uint16_t &messageLen, const uint8_t packetID)
- Description:
- ------------
-  * Send a specified number of bytes in packetized form
- Inputs:
- -------
-  * const uint16_t &messageLen - Number of values in txBuff
-  to send as the payload in the next packet
-  * const uint8_t packetID - The packet 8-bit identifier
- Return:
- -------
-  * uint8_t numBytesIncl - Number of payload bytes included in packet
-*/
-uint8_t SPITransfer::Master_writeCMDto_Slave_withPacket(const uint16_t& messageLen, const uint8_t boardID) 
+uint8_t SPITransfer::Master_writeDATAto_Slave_withPacket(const uint16_t &messageLen, const uint8_t boardID)
 {
 	uint8_t numBytesIncl = packet.constructPacket(messageLen, boardID);
-	if (boardID != -1) _cs = boardID;
-	MSP_SPI_write(_spi, _cs, packet.preamble, sizeof(packet.preamble));
-	MSP_SPI_write(_spi, _cs, packet.txBuff, numBytesIncl);
-	MSP_SPI_write(_spi, _cs, packet.postamble, sizeof(packet.postamble));
-	
+	MSP_SPI_write(_spi, packet.preamble, sizeof(packet.preamble));
+	MSP_SPI_write(_spi, packet.txBuff, numBytesIncl);
+	MSP_SPI_write(_spi, packet.postamble, sizeof(packet.postamble));
 	return numBytesIncl;
 }
 
-void SPITransfer::Master_readDATAfrom_Slave_withPacket(uint8_t cs)
+void SPITransfer::Master_readDATAfrom_Slave_withPacket()
 {
-  	uint32_t msTickstart = xTaskGetTickCount();			//HAL_GetTick();
-  	uint8_t recChar = 0xF0;
+	uint32_t msTickstart = xTaskGetTickCount(); // HAL_GetTick();
+	uint8_t recChar = 0xF0;
 	bytesRead = 0;
-	if (cs != -1) _cs = cs;
-  	uint8_t rxi = 0;    //
-	uint8_t spiRxData[100];
+	//  	uint8_t rxi = 0;    //
+	//	uint8_t spiRxData[100];
 	do
-  	{
-		if (!MSP_SPI_read(_spi, _cs, &recChar, 1)) {
+	{
+		if (!MSP_SPI_read(_spi, &recChar, 1))
+		{
 			_slavebH->spiTransState = SpiTrans_Err;
 			return;
 		}
-		//if (recChar != 126) continue;
-		if (rxi > 100) rxi = 0;
-		spiRxData[rxi++] 		= recChar;   //
-		//printf("%d, ", recChar);
-    	bytesRead                					= packet.parse(recChar);
-		status                   					= packet.status;
-		if (status != CONTINUE) {
-      		printf("\r\nstatus : %d, bytesRead : %d\r\n", status, bytesRead);
-      		if (status < 0) {
-				reset(); 
+		//		if (rxi > 100) rxi = 0;
+		//		spiRxData[rxi++] 		= recChar;   //
+		bytesRead = packet.parse(recChar);
+		status = packet.status;
+		if (status != CONTINUE)
+		{
+			LOGI("\r\nstatus : %d, bytesRead : %d\r\n", status, bytesRead);
+			if (status < 0)
+			{
+				reset();
 				_slavebH->spiTransState = SpiTrans_S2M_RxData_Err;
 				return;
-			}   //{sTransState[cBoard] = SpiTrans_S2M_RxData_Err; reset();}
-      		_slavebH->spiTransState = SpiTrans_S2M_RxData_End;
+			} //{sTransState[cBoard] = SpiTrans_S2M_RxData_Err; reset();}
+			_slavebH->spiTransState = SpiTrans_S2M_RxData_End;
+#if 0 // 打印测试信息
+  			LOGI("read spi data len : %d\r\n", rxi);
+  			for (int i = 0; i < rxi; i++) {
+    			LOGI("%d, ", spiRxData[i]);
+  			}
+  			LOGI("-------------%ld\r\n", xTaskGetTickCount());
+#endif
 			//_slavebH->spiRx_uartTx_u8regs_size = rxi;
-			return;                   //sTransState[cBoard] = SpiTrans_S2M_RxData_End;
+			return; // sTransState[cBoard] = SpiTrans_S2M_RxData_End;
 		}
-	}while((xTaskGetTickCount() - msTickstart) < sTrans_TimeOut * 20);             //while(recChar != 129); //0xAA);
+	} while ((xTaskGetTickCount() - msTickstart) < sTrans_TimeOut); // while(recChar != 129); //0xAA);
 
-#if 1   //打印测试信息
-  	printf("read spi data len : %d\r\n", rxi);
+#if 0 // 打印测试信息
+  	LOGI("read spi data len : %d\r\n", rxi);
   	for (int i = 0; i < rxi; i++) {
-    	printf("%d, ", spiRxData[i]);
+    	LOGI("%d, ", spiRxData[i]);
   	}
-  	printf("-------------%ld\r\n", xTaskGetTickCount());
-  	printf("status : %d\r\n", status);
+  	LOGI("-------------%ld\r\n", xTaskGetTickCount());
+  	LOGI("status : %d\r\n", status);
   	rxi = 0;
 #endif
 #if 1
-  	/* 3------判断是否为超时退出？或者是完成读取数据------------ */
-  	//if (sTransState[cBoard] == SpiTrans_S2M_RxData_End) break;
-  	if ((HAL_GetTick() - msTickstart) > sTrans_TimeOut) 
-  	{
-    	printf("spi trans timeout\r\n");
-  	}
+	/* 3------判断是否为超时退出？或者是完成读取数据------------ */
+	// if (sTransState[cBoard] == SpiTrans_S2M_RxData_End) break;
+	if ((HAL_GetTick() - msTickstart) > sTrans_TimeOut)
+	{
+		LOGE("spi trans timeout\r\n");
+	}
 #endif
 	_slavebH->spiTransState = SpiTrans_TimeOut;
-  	return;
-}
-
-/**
-  * @brief  Master Synchronization with Slave.
-  * @param  currentBoard_TypeDef 当前触发的板子号
-  * @retval None                                            如果同步成功，返回true
-  */
-void SPITransfer::Master_Spi1_Transfer(uint8_t boardID)
-{
-  	//printf("current board : --------------------------------------------------------------------%d\r\n", boardID);
-	if (boardID == -1) { _slavebH->spiTransState = SpiTrans_Err; return; }
-
-/*****如果没收到slave板发过来的ack信号， master板就重新发送一次ack信号给slave板，循环3次都失败的话，退出报错*****/  
-	for (int i = 0; i < spiTxRx_reRunTimes; i++) {
-		/* 1------主控板发送 ACK signal 给 slave板 */
-		if (Master_writeACKto_Slave(boardID)) {
-			printf("tx ack end\r\n");
-			break;
-  		} else { 
-			printf("tx ack err\r\n");
-			if (i >= (spiTxRx_reRunTimes - 1)) { _slavebH->spiTransState = SpiTrans_M2S_TxAck_Err; return; }   //{sTransState[cBoard] = SpiTrans_M2S_TxAck_Err; return;}
-			else continue;
-		}
-	}
-#if 0
-  		/* 2------从slave板接收ACK信号------------ */
-  		if (Master_readACKfrom_Slave(boardID)) {
-			printf("rx ack end\r\n");
-			break;
-  		} else {
-			printf("rx ack err\r\n");
-			if (i >= (spiTxRx_reRunTimes - 1)) return SpiTrans_S2M_RxAck_Err; 
-			else continue;
-	  	}
-	}
-/***************************************************************************************************/
-
-  	/* 3------Master板往slave板发送指令------------ */
-  	uint8_t txbuf[4] = {0x01, 0x02, 0x03, 0xAA};
-  	uint16_t sendSize = 0;
-  	sendSize = packet.txObj(txbuf, sendSize);                     			//1-------封装数据
-  	Master_writeCMDto_Slave_withPacket(sendSize, boardID);            		//2-------发送数据
-#endif
-  	/* 4------从slave板接收数据------------ */
-  	//uint16_t recSize = 0;
-  	//uint8_t rbuf[50];
-	printf("start read data from slave \r\n");
-	//osDelay(100);
-  	Master_readDATAfrom_Slave_withPacket(boardID);            	//1-----接收数据
-  	if (_slavebH->spiTransState != SpiTrans_S2M_RxData_End) { printf("read rxdata err\r\n"); return; }
-	//recSize = packet.rxObj(rbuf, recSize);                                  				//2-------解析出可用数据
-  	printf("rec data : ");
-  	//for (int i = 0 ; i < _slavebH->spiRx_uartTx_u8regs_size ; i++) {
-	for (int i = 0 ; i < (packet.bytesRead) ; i++) {
-		_slavebH->spiRx_uartTx_u8regs[i] = packet.rxBuff[i];
-    	//printf("%c", rbuf[i]);
-		//printf("%d", _slavebH->spiRx_uartTx_u8regs[i]); packet
-		printf("%2X ", packet.rxBuff[i]); 
-  	}
-	_slavebH->spiRx_uartTx_u8regs_size = packet.bytesRead;
-  	printf(".......%d\r\n", packet.bytesRead);
-
-	/* 5------接收完数据后，master板发送end信号给slave板------------ */
-	if (!Master_writeENDto_Slave(boardID)) { printf("write end to slave err\r\n"); _slavebH->spiTransState = SpiTrans_Err; return; }
-	_slavebH->spiTransState = SpiTrans_End;
 	return;
 }
 
+/**
+ * @brief  Master Synchronization with Slave.
+ * @param  currentBoard_TypeDef 当前触发的板子号
+ * @retval None                                            如果同步成功，返回true
+ */
+void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
+{
+	// uint8_t rxbuf[100];
+	// for (uint8_t i = 0 ; i < sizeof(rxbuf) ; i++) { rxbuf[i] = 0; }
+	/*****如果没收到slave板发过来的ack信号， master板就重新发送一次ack信号给slave板，循环3次都失败的话，退出报错*****/
+
+#if 1
+	if (TxRxFlag == RxFlag)
+	{
+		LOGI("start read data from slave \r\n");
+		SPI1_CS_ENABLE(boardID);
+#if 1
+		/* 1------主控板发送 ACK signal 给 slave板 */
+		if (!Master_writeSyncto_Slave(SPI_MASTERRead_ACK))
+		{
+			LOGE("tx ack error\r\n");
+			return;
+		}
+#endif
+		/* 2------从slave板接收数据------------ */
+		// LOGI("start read data from slave \r\n");
+		Master_readDATAfrom_Slave_withPacket(); // 1-----接收数据
+		SPI1_CS_DISABLE(boardID);
+		if (_slavebH->spiTransState != SpiTrans_S2M_RxData_End)
+		{
+			LOGE("read rxdata err\r\n");
+			return;
+		}
+
+		for (int i = 0; i < (packet.bytesRead); i++)
+		{
+			_slavebH->spiRx_uartTx_u8regs[i] = packet.rxBuff[i];
+			// LOGI("%02X ", packet.rxBuff[i]);
+		}
+		_slavebH->spiRx_uartTx_u8regs_size = packet.bytesRead;
+		// LOGI(".......%d\r\n", packet.bytesRead);
+	}
+	else if (TxRxFlag == TxFlag)
+	{
+		SPI1_CS_ENABLE(boardID);
+		//uint32_t txTickstart = xTaskGetTickCount(); 
+		//uint8_t rxack;
+		//LOGI("rxflag...........%d\r\n", HAL_GPIO_ReadPin(SPI1_DQB1_CS_Port, SPI1_DQB2_CS));
+		if (!Master_SyncWith_Slave(SPI_SLAVE_ACK)) {
+			LOGE("read ack from slave error.................................\r\n");
+			return;
+		}
+
+		// SPI1_CS_DISABLE(boardID);
+		/* 2------往slave板发送数据------------ */
+		uint8_t sendSize = 0;
+		packet.txObj(_slavebH->spiTx_uartRx_Buffer, sendSize);
+		sendSize = _slavebH->spiTx_uartRx_Buffer_Size;
+		// SPI1_CS_ENABLE(boardID);
+		Master_writeDATAto_Slave_withPacket(sendSize, boardID);
+		SPI1_CS_DISABLE(boardID);
+	}
+	else
+	{
+		LOGE("txrxflag error \r\n");
+	}
+#endif
+	/* 3------接收完数据后，master板发送end信号给slave板------------ */
+	//	if (!MSP_SPI_write(_spi, _cs, &SPI_Trans_END, 1)) { LOGI("write end to slave err\r\n"); _slavebH->spiTransState = SpiTrans_Err; return; }
+	_slavebH->spiTransState = SpiTrans_End;
+
+	return;
+}
 
 /*
  uint8_t SPITransfer::currentPacketID()
@@ -353,27 +302,33 @@ uint8_t SPITransfer::currentPacketID()
 void SPITransfer::reset()
 {
 	uint8_t txdata = 0xFF;
-	MSP_SPI_write(_spi, _cs, &txdata, 1);	//_spi->transfer(0xFF);
+	MSP_SPI_write(_spi, &txdata, 1); //_spi->transfer(0xFF);
 	packet.reset();
 	status = packet.status;
-	printf("spi transfer reset \r\n");
+	LOGE("spi transfer reset \r\n");
 }
 
 /*
  * 用于c调用
-*/
+ */
 extern void *SPITransfer_C_New(SlaveBoardHandler_t *slavebH, SPI_HandleTypeDef *theSPI, uint8_t master)
 {
 	return new SPITransfer(slavebH, theSPI, (bool)master);
 }
-extern void SPITransfer_C_Master_Spi1_Transfer(void *SpiTrans, BoardID_TypeDef boardID)
+extern void SPITransfer_C_Master_Spi1_Transfer(void *SpiTrans, uint8_t TxRxFlag, BoardID_TypeDef boardID)
 {
 	SPITransfer *sTrans = (SPITransfer *)SpiTrans;
-	sTrans->Master_Spi1_Transfer((uint8_t)boardID);
+	sTrans->Master_Spi1_Transfer(TxRxFlag, (uint8_t)boardID);
 	delete sTrans;
 	return;
 }
 
+// sendSize = packet.txObj(test_TxBuff, sendSize);  		//1-------封装数据
+// extern void SPITransfer_C_TxObj(void *SpiTrans, uint8_t TxRxFlag, BoardID_TypeDef boardID)
+//{
+//	uint8_t sendSize = 0;
+//	sendSize = packet.txObj(test_TxBuff, sendSize);  		//1-------封装数据
+//	return;
+// }
 
-//#endif // not (defined(MBED_H) || defined(__SAM3X8E__))
-
+// #endif // not (defined(MBED_H) || defined(__SAM3X8E__))

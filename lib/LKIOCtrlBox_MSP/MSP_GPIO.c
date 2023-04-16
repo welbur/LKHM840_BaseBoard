@@ -56,6 +56,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(RED_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 #endif
 
 #if DEVBoardYD
@@ -95,7 +102,7 @@ void EXTILine_Config(void)
 #if 1
     DIB_INT_PIN1_CLK_ENABLE();
     GPIO_InitStruct.Pin = DIB_INT_PIN1;                                   
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;//GPIO_MODE_IT_RISING_FALLING; //GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(DIB_INT_PIN1_PORT, &GPIO_InitStruct);
     HAL_NVIC_SetPriority(DIB_INT_PIN1_EXTI_IRQn, GPIO_EXTI_PP, DIB_INT_PIN1_EXTI_SP);
@@ -104,7 +111,7 @@ void EXTILine_Config(void)
     /********************************     di board 2 int     *********************************/
     DIB_INT_PIN2_CLK_ENABLE();
     GPIO_InitStruct.Pin = DIB_INT_PIN2;                                   
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(DIB_INT_PIN2_PORT, &GPIO_InitStruct);
     HAL_NVIC_SetPriority(DIB_INT_PIN2_EXTI_IRQn, GPIO_EXTI_PP, DIB_INT_PIN2_EXTI_SP);

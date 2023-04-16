@@ -6,6 +6,7 @@
 #endif
 
 #include "stm32f4xx_hal.h"
+#include "LOG.h"
 //#include <string.h>
 //#include <stdlib.h>
 #include "stdio.h"	
