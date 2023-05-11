@@ -151,14 +151,6 @@ void StartDefaultTask(void *argument)
 			LED_B_TogglePin;
 			//LOGI("test print time");
 		}
-		#if 0
-		uint32_t msTickstart = xTaskGetTickCount();
-		uint32_t printno = 0;
-		do
-		{
-			LOGI("test print time......%ld......%ld\r\n", printno++, xTaskGetTickCount());
-		} while ((xTaskGetTickCount() - msTickstart) < 1); 
-		#endif
 		osDelay(1000);
 	}
 	/* USER CODE END StartDefaultTask */
@@ -183,7 +175,7 @@ void Start_DIBoard_TransTask(void *argument)
 			{
 				void *sTrans = SPITransfer_C_New(&SlaveBoardH[i], &hspi1, SET_SPIMODE_MASTER);
 				SPITransfer_C_Master_Spi1_Transfer(sTrans, RxFlag, SlaveBoardH[i].BoardID);
-				LOGI("current board %d status : .....%d......~~~~~~~~~~~~\r\n", SlaveBoardH[i].BoardID, SlaveBoardH[i].spiTransState);
+				//LOGI("current board %d status : .....%d......~~~~~~~~~~~~\r\n", SlaveBoardH[i].BoardID, SlaveBoardH[i].spiTransState);
 				SlaveBoardH[i].isBoard_Rx_En = 0;
 				if (SlaveBoardH[i].spiTransState == SpiTrans_End)
 				{
@@ -199,7 +191,7 @@ void Start_DIBoard_TransTask(void *argument)
 			LOG("rec111 data : ");
 			for (int j = 0; j < re_arr_size; j++)
 				LOG("%02X ", re_arr[j]);
-			LOG("\r\n.......%d~~~~~~~~~~~~~%ld-------------%ld\r\n", re_arr_size, HAL_GetTick(), ++countt);
+			LOG("\r\n.......%d~~~~~~~~~~~~~%ld-------------%ld\r\n", re_arr_size, xTaskGetTickCount(), ++countt);
 			/*增加包头*/
 			re_arr[0] = mod_preamble[0], re_arr[1] = mod_preamble[1];
 			re_arr[2] = re_arr_size - MOD_PREAMBLE_SIZE; // 有效数据的长度

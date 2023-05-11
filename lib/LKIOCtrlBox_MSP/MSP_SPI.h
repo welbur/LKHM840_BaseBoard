@@ -8,7 +8,7 @@
 #include "stm32f4xx_hal.h"
 #include "stdio.h"
 #include "SPITransfer_C.h"
-//#include "LOG.h"
+#include "LOG.h"
 //#include "SlaveBoardConfig.h"
 //#include "MSP_GPIO.h"
 //#include "../../include/spi.h"

@@ -154,7 +154,7 @@ void SPITransfer::Master_readDATAfrom_Slave_withPacket()
 		status = packet.status;
 		if (status != CONTINUE)
 		{
-			LOGI("\r\nstatus : %d, bytesRead : %d\r\n", status, bytesRead);
+			//LOGI("\r\nstatus : %d, bytesRead : %d\r\n", status, bytesRead);
 			if (status < 0)
 			{
 				reset();
@@ -209,7 +209,7 @@ void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
 #if 1
 	if (TxRxFlag == RxFlag)
 	{
-		LOGI("start read data from slave \r\n");
+		//LOGI("start read data from slave \r\n");
 		SPI1_CS_ENABLE(boardID);
 #if 1
 		/* 1------主控板发送 ACK signal 给 slave板 */

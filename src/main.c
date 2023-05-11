@@ -107,8 +107,8 @@ int main(void)
 	// Start capturing traffic on serial Port
 	ModbusStart(&ModbusH);
 	/***********/
-  uint8_t tt = 10;
-  LOGE("start Modbud......%d......%d\r\n", tt, tt);
+
+  LOGE("start Modbud......\r\n");
   LOGI("start Modbud\r\n");
   LOGW("start Modbud\r\n");
 

@@ -28,7 +28,7 @@ __IO uint32_t sTxRxFlag;
  */
 uint8_t SPI1_WriteData(uint8_t *data, uint16_t size)
 {
-	printf("transmit spi1 data....\r\n");
+	LOGI("transmit spi1 data....\r\n");
 	return HAL_SPI_Transmit(&hspi1, data, size, 1000);
 }
 
@@ -41,7 +41,7 @@ uint8_t SPI2_ReadWriteByte(uint8_t TxData)
 {
 	uint8_t Rxdata[5];
 	HAL_SPI_Receive(&hspi2, Rxdata, 5, 1000);
-	printf("spi2 read data : %d, %d, %d, %d, %d\r\n", Rxdata[0], Rxdata[1], Rxdata[2], Rxdata[3], Rxdata[4]);
+	LOGI("spi2 read data : %d, %d, %d, %d, %d\r\n", Rxdata[0], Rxdata[1], Rxdata[2], Rxdata[3], Rxdata[4]);
 	return Rxdata[0]; // �����յ�������
 }
 
@@ -65,7 +65,7 @@ void MX_SPI1_Init(void)
 	hspi1.Init.CRCPolynomial = 10; // 7
 	if (HAL_SPI_Init(&hspi1) != HAL_OK)
 	{
-		printf("error spi");		//Error_Handler();
+		LOGE("error spi");		//Error_Handler();
 	}
 }
 /* SPI2 init function */
@@ -85,7 +85,7 @@ void MX_SPI2_Init(void)
 	hspi2.Init.CRCPolynomial = 10;
 	if (HAL_SPI_Init(&hspi2) != HAL_OK)
 	{
-		printf("error spi");
+		LOGE("error spi");
 		// Error_Handler();
 	}
 }
@@ -265,7 +265,7 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
 	{
 		if (HAL_SPI_Receive(spiHandle, rxData, 1, 10) != HAL_OK)
 		{
-			// printf("spi MSP_SPI_read timeout....\r\n");
+			// LOGE("spi MSP_SPI_read timeout....\r\n");
 			return 0;
 		}
 		while (HAL_SPI_GetState(spiHandle) != HAL_SPI_STATE_READY)
@@ -286,12 +286,12 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
  */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	printf("spi rx callback\r\n");
+	LOGI("spi rx callback\r\n");
 	sTxRxFlag = SpiRx_COMPLETE;
 }
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	// printf("spi tx callback\r\n");
+	// LOGI("spi tx callback\r\n");
 	sTxRxFlag = SpiTx_COMPLETE;
 }
 
@@ -304,7 +304,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
  */
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
-	printf("spi error callback\r\n");
+	LOGE("spi error callback\r\n");
 	sTxRxFlag = SpiTxRx_ERROR;
 	HAL_SPI_MspDeInit(hspi);
 	HAL_SPI_MspInit(hspi);

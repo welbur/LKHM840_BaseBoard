@@ -1,2 +1,3 @@
-# LKIOCtrlBox_MainBoard_STM32
-v0.0.1
+# LKHM840_BaseBoard
+# 2023-05-12 v0.0.1
+# STM32F412RET6

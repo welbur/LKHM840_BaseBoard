@@ -12,9 +12,9 @@
 
 #include "SEGGER_RTT.h"
 
-#define LOG_DEBUG 1
+//#define LOG_DEBUG 1
 
-#if LOG_DEBUG
+#ifdef LOG_DEBUG
 
 
 #define LOG_PROTO(type,color,format,...)            \
