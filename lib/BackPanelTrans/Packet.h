@@ -110,7 +110,6 @@ class Packet
 		return maxIndex;
 	}
 
-
 	/*
 	 uint16_t Packet::rxObj(const T &val, const uint16_t &index=0, const uint16_t &len=sizeof(T))
 	 Description:

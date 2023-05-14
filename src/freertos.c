@@ -22,8 +22,9 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "SPITransfer_C.h"
+#include "BackPanelTrans_C.h"
 #include "Modbus.h"
+#include "LOG.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -48,6 +49,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+//#define MSG_COUNT 3
+//#define MSG_LENGTH 128
+
+//char LOG_MSG[MSG_LENGTH];
+
+osMutexId_t mutex;
+
+
 uint32_t countt = 0;
 uint8_t mod_preamble[MOD_PREAMBLE_SIZE] = {MOD_START_BYTE, 0, 0, 0};
 /* USER CODE END Variables */
@@ -58,18 +67,25 @@ const osThreadAttr_t defaultTask_attributes = {
 	.stack_size = 32 * 4,
 	.priority = (osPriority_t)osPriorityLow,
 };
-#if 1
-/* 1----Definitions for Start Slave Board SPITransTask */
-osThreadId_t DIBoard_TransTaskHandle;
-const osThreadAttr_t DIBoard_TransTask_attributes = {
-	.name = "DIBoard_TransTask",
+
+osThreadId_t osPrintLOG_TaskHandle;
+const osThreadAttr_t osPrintLOGTask_attributes = {
+	.name = "osPrintLOGTask",
+	.stack_size = 256 * 4,
+	.priority = (osPriority_t)osPriorityLow1,
+};
+
+/* 1-----Main Board read power board data ,and saved to buffer, wait plc read */
+osThreadId_t ReadPowerBoardData_TransTaskHandle;
+const osThreadAttr_t ReadPowerBoardData_TransTask_attributes = {
+	.name = "ReadPowerBoardData_TransTask",
 	.stack_size = 256 * 4,
 	.priority = (osPriority_t)osPriorityBelowNormal1, // osPriorityHigh
 };
-#endif
-osThreadId_t DQBoard_TransTaskHandle;
-const osThreadAttr_t DQBoard_TransTask_attributes = {
-	.name = "DQBoard_TransTask",
+/* 2-----Main Board read modbus data from pn board, and write to Power Board TransTask */
+osThreadId_t MainBoard2PowerBoard_TransTaskHandle;
+const osThreadAttr_t MainBoard2PowerBoard_TransTask_attributes = {
+	.name = "MainBoard2PowerBoard_TransTask",
 	.stack_size = 256 * 4,
 	.priority = (osPriority_t)osPriorityBelowNormal, // osPriorityHigh
 };
@@ -80,8 +96,9 @@ const osThreadAttr_t DQBoard_TransTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void osPrintLOG(void *argument);
 void Start_DIBoard_TransTask(void *argument);
-void Start_DQBoard_TransTask(void *argument);
+void Start_MainBoard2PowerBoard_TransTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
@@ -91,107 +108,101 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
  */
 void MX_FREERTOS_Init(void)
 {
-	/* creation of work led Task */
+	mutex = osMutexNew(NULL);
+
 	defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-	/* creation of TaskmyTaskSlave */
+	osPrintLOG_TaskHandle = osThreadNew(osPrintLOG, NULL, &osPrintLOGTask_attributes);
+
 #if 1
-	DIBoard_TransTaskHandle = osThreadNew(Start_DIBoard_TransTask, NULL, &DIBoard_TransTask_attributes);
-	DQBoard_TransTaskHandle = osThreadNew(Start_DQBoard_TransTask, NULL, &DQBoard_TransTask_attributes);
+	ReadPowerBoardData_TransTaskHandle = osThreadNew(Start_ReadPowerBoardData_TransTask, NULL, &ReadPowerBoardData_TransTask_attributes);
+	MainBoard2PowerBoard_TransTaskHandle = osThreadNew(Start_MainBoard2PowerBoard_TransTask, NULL, &MainBoard2PowerBoard_TransTask_attributes);
 #endif
-
-	/* USER CODE END Init */
-	/* USER CODE BEGIN Header */
-	/**
-	 ******************************************************************************
-	 * File Name          :
-	 * Description        :
-	 ******************************************************************************
-	 * @attention
-	 *
-	 * Copyright (c) 2023 STMicroelectronics.
-	 * All rights reserved.
-	 *
-	 * This software is licensed under terms that can be found in the LICENSE file
-	 * in the root directory of this software component.
-	 * If no LICENSE file comes with this software, it is provided AS-IS.
-	 *
-	 ******************************************************************************
-	 */
-	/* USER CODE END Header */
-
-	/**
-	 * @}
-	 */
-
-	/**
-	 * @}
-	 */
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
 /**
  * @brief  Function implementing the defaultTask thread.
  * @param  argument: Not used
  * @retval None
  */
-/* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-	/* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;)
 	{
-		if (SlaveBoardH[DI_Board_1].isBoard_Rx_En == 1)
+		osMutexAcquire(mutex, osWaitForever);	//打印调试信息用
+		if (PowerBoardH[PowerBoard_1].isBoard_Rx_En == 1)
 		{
 			// SlaveBoardH[DI_Board_1].isBoardEnable = 0;
 			LED_G_TogglePin;
 		}
 		else
 		{
-			LED_B_TogglePin;
-			//LOGI("test print time");
+			WorkLed_TogglePin;
+			//strcat(LOG_MSG[Default_LOG], "test print time \r\n");		//LOGI("test print time\r\n");
 		}
+		osMutexRelease(mutex);
 		osDelay(1000);
 	}
-	/* USER CODE END StartDefaultTask */
 }
 
-/****************   1-----DI Board      ********************
- * @brief Function implementing the DI Board SpiTrans thread.
+/**
+ * @brief  将需要打印的数据都合并到一个buffer里面，然后再一起打印出来。
+ * @param  argument: Not used
+ * @retval None
+ */
+void osPrintLOG(void *argument)
+{
+	for (;;)
+	{
+		osMutexAcquire(mutex, osWaitForever);
+		if (LOG_MSG[0] != 0)
+		{
+			LOG("~~~~~~~~~~RTOS Print LOG~~~~~~~~~~\r\n%s", LOG_MSG);
+			LOG("\r\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n");
+			memset(LOG_MSG, 0, sizeof(LOG_MSG));
+		}
+		osMutexRelease(mutex);
+		osDelay(100);
+	}
+}
+
+/****************   1-----Main Board read power board data ,and saved to buffer, wait plc read   ********************
+ * @brief 每隔指定时间读取各个power板的数据，并保存，等待plc过来读取.
  * @param argument: Not used
  * @retval None
  */
-void Start_DIBoard_TransTask(void *argument)
+void Start_ReadPowerBoardData_TransTask(void *argument)
 {
 	/* Infinite loop */
 	for (;;)
 	{
+		osMutexAcquire(mutex, osWaitForever);	//打印调试信息用
 		uint8_t re_arr_size = MOD_PREAMBLE_SIZE; // 暂用数组前面的4个元素，作为包头使用
 		uint8_t re_arr[128];
 		/*1-------------------------有触发信号后，读取相关slave板的所有数据*/
 		for (int i = 0; i < DIBoard_NO; i++)
 		{
-			if (SlaveBoardH[i].isBoard_Rx_En)
+			if (PowerBoardH[i].isBoard_Rx_En)
 			{
-				void *sTrans = SPITransfer_C_New(&SlaveBoardH[i], &hspi1, SET_SPIMODE_MASTER);
-				SPITransfer_C_Master_Spi1_Transfer(sTrans, RxFlag, SlaveBoardH[i].BoardID);
-				//LOGI("current board %d status : .....%d......~~~~~~~~~~~~\r\n", SlaveBoardH[i].BoardID, SlaveBoardH[i].spiTransState);
-				SlaveBoardH[i].isBoard_Rx_En = 0;
-				if (SlaveBoardH[i].spiTransState == SpiTrans_End)
+				Addto_osPrintf("current board %d --- start time : %ld\r\n", PowerBoardH[i].BoardID, xTaskGetTickCount());
+				void *sTrans = SPITransfer_C_New(&PowerBoardH[i], &hspi1, SET_SPIMODE_MASTER);
+				SPITransfer_C_Master_Spi1_Transfer(sTrans, RxFlag, PowerBoardH[i].BoardID);
+				Addto_osPrintf("current board %d status : ..%d..\r\n", PowerBoardH[i].BoardID, PowerBoardH[i].spiTransState);
+				PowerBoardH[i].isBoard_Rx_En = 0;
+				if (PowerBoardH[i].spiTransState == SpiTrans_End)
 				{
 					/*从spi通道读到数据后，把slave板从1-8所有的数据都读出来后，合并在一起，然后再发给modbus主机(pn板)*/
-					COPY_ARRAY(re_arr + re_arr_size, SlaveBoardH[i].spiRx_uartTx_u8regs, SlaveBoardH[i].spiRx_uartTx_u8regs_size);
-					re_arr_size += SlaveBoardH[i].spiRx_uartTx_u8regs_size;
+					COPY_ARRAY(re_arr + re_arr_size, PowerBoardH[i].spiRx_uartTx_u8regs, PowerBoardH[i].spiRx_uartTx_u8regs_size);
+					re_arr_size += PowerBoardH[i].spiRx_uartTx_u8regs_size;
 				}
 			}
 		}
-#if 1
 		if (re_arr_size != MOD_PREAMBLE_SIZE)
-		{
-			LOG("rec111 data : ");
+		{	
+			Addto_osPrintf("rec111 data : ");
 			for (int j = 0; j < re_arr_size; j++)
-				LOG("%02X ", re_arr[j]);
-			LOG("\r\n.......%d~~~~~~~~~~~~~%ld-------------%ld\r\n", re_arr_size, xTaskGetTickCount(), ++countt);
+				Addto_osPrintf("%02X ", re_arr[j]);	
+			Addto_osPrintf("\r\n.......%d~~~ end time : %ld --------%ld\r\n", re_arr_size, xTaskGetTickCount(), ++countt);
 			/*增加包头*/
 			re_arr[0] = mod_preamble[0], re_arr[1] = mod_preamble[1];
 			re_arr[2] = re_arr_size - MOD_PREAMBLE_SIZE; // 有效数据的长度
@@ -202,21 +213,22 @@ void Start_DIBoard_TransTask(void *argument)
 			spiRxUartTxBuffer(&ModbusH);
 			ModbusH.spiRx_uartTx_u8regs_size = 0;
 		}
-#endif
+		osMutexRelease(mutex);
 		osDelay(5);
 	}
 }
 
-/****************   2-----DQ Board      ********************
- * @brief 等待modbus指令，然后将数据发送给DQ板
+/****************   2-----Main Board read modbus data from pn board, and write to Power Board TransTask   ********************
+ * @brief 等待pn板发过来的modbus指令，然后将数据发送给指定的Power板
  * @param argument: Not used
  * @retval None
  */
-void Start_DQBoard_TransTask(void *argument)
+void Start_MainBoard2PowerBoard_TransTask(void *argument)
 {
 	/* Infinite loop */
 	for (;;)
 	{
+		osMutexAcquire(mutex, osWaitForever);	//打印调试信息用
 		if (xSemaphoreTake(ModbusH.ModBusSphrHandle, portMAX_DELAY) == pdTRUE)
 		{
 			if (ModbusH.FCStatus[MB_FC_WRITE_MULTIPLE_COILS] != 0)// && (ModbusH.spiRx_uartTx_u8regs_size == 0)) 
@@ -227,22 +239,19 @@ void Start_DQBoard_TransTask(void *argument)
 				{
 					for (uint16_t i = 0; i < ModbusH.FCAddrHandle.FC15_u16regsno; i++) 
 					{
-						//dbuf[i*2] = highByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
-						//dbuf[i*2+1] = lowByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
-						//SlaveBoardH[dqi].spiTx_uartRx_u8regs[i*2] = dbuf[i*2];
-						//SlaveBoardH[dqi].spiTx_uartRx_u8regs[i*2+1] = dbuf[i*2+1];
-						SlaveBoardH[dqi].spiTx_uartRx_Buffer[i*2] = highByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
-						SlaveBoardH[dqi].spiTx_uartRx_Buffer[i*2+1] = lowByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
+						PowerBoardH[dqi].spiTx_uartRx_Buffer[i*2] = highByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
+						PowerBoardH[dqi].spiTx_uartRx_Buffer[i*2+1] = lowByte(ModbusDATA[ModbusH.FCAddrHandle.FC15_u16StartCoil+i]);
 					}
-					SlaveBoardH[dqi].spiTx_uartRx_Buffer_Size = ModbusH.FCAddrHandle.FC15_u16regsno * 2;
-					void *sTrans = SPITransfer_C_New(&SlaveBoardH[dqi], &hspi1, SET_SPIMODE_MASTER);
-					SPITransfer_C_Master_Spi1_Transfer(sTrans, TxFlag, SlaveBoardH[dqi].BoardID);
-					LOGI("end dqboard trans task..............boardID : %d.......\r\n", SlaveBoardH[dqi].BoardID);
+					PowerBoardH[dqi].spiTx_uartRx_Buffer_Size = ModbusH.FCAddrHandle.FC15_u16regsno * 2;
+					void *sTrans = SPITransfer_C_New(&PowerBoardH[dqi], &hspi1, SET_SPIMODE_MASTER);
+					SPITransfer_C_Master_Spi1_Transfer(sTrans, TxFlag, PowerBoardH[dqi].BoardID);
+					Addto_osPrintf("end dqboard trans task..............boardID : %d.......\r\n", PowerBoardH[dqi].BoardID);
 				}
-				LOGI("\r\n");
+				Addto_osPrintf("\r\n");		//strcat(LOG_MSG[TransTask_LOG], "\r\n");
 			}
 			xSemaphoreGive(ModbusH.ModBusSphrHandle);
 		}
+		osMutexRelease(mutex);
 		osDelay(1);
 		//continue;
 	}
@@ -326,6 +335,7 @@ void Start_RS485B_SPITransTask(void *argument)
 		osDelay(1000);
 	}
 }
+
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */

@@ -38,7 +38,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "stdio.h"
+
 #include "stdarg.h"
 
 //#include <SEGGER_RTT.h>
@@ -48,72 +48,16 @@ extern "C" {
 #include "MSP_GPIO.h"
 #include "MSP_USART.h"
 #include "MSP_SPI.h"
-#include "SPITransfer_C.h"
-#include "stdio.h"
-#include "SlaveBoard.h"
-//#include "SlaveBoardConfig.h"
+#include "BackPanelTrans_C.h"
+//#include "stdio.h"
+#include "PinConfig.h"
 
 #include "Modbus.h"
 #include "cmsis_os.h"
 #include "dma.h"
 #include "LOG.h"
-//#include "tftlcd.h"
-//#include "w25qxx.h"
-/* USER CODE END Includes */
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
-
-
-/* Private defines -----------------------------------------------------------*/
 #if 0
-#define KEY_Pin GPIO_PIN_13
-#define KEY_GPIO_Port GPIOC
-
-#define RED_Pin GPIO_PIN_0
-#define RED_GPIO_Port GPIOC
-#define GREEN_Pin GPIO_PIN_1
-#define GREEN_GPIO_Port GPIOC
-#define BLUE_Pin GPIO_PIN_2
-#define BLUE_GPIO_Port GPIOC
-
-#define LCD_DC_Pin GPIO_PIN_4
-#define LCD_DC_GPIO_Port GPIOB
-#define LCD_RST_Pin GPIO_PIN_6
-#define LCD_RST_GPIO_Port GPIOB
-#define LCD_PWR_Pin GPIO_PIN_7
-#define LCD_PWR_GPIO_Port GPIOB
-#endif
-
-#define USEDGPIOx_CLK_ENABLE(__INDEX__)     do{if((__INDEX__) == 0) KEY_Pin_CLK_ENABLE(); else \
-                                               if((__INDEX__) == 1) DIB_INT_PIN1_CLK_ENABLE(); else \
-                                               if((__INDEX__) == 2) DIB_INT_PIN2_CLK_ENABLE(); \
-                                                 }while(0)
-
-
-// 位操作函数
-//#define SET_BIT(reg, bit)   ((reg) |= (1 << (bit)))
-//#define CLEAR_BIT(reg, bit) ((reg) &= ~(1 << (bit)))
-#define isBIT_SET(reg, bit)  ((reg) & (1 << (bit)))         //(reg & (1 << bit)) >> bit
-//#define TOGGLE_BIT(reg, bit) ((reg) ^= (1 << (bit)))
-
-#define ModbusDATASize            600     //modubs协议中，存放数据的寄存器长度
-//#define ModbusDATA_AddrOffset     1536    //0x0600
-
 typedef int32_t  s32;
 typedef int16_t s16;
 typedef int8_t  s8;
@@ -145,23 +89,38 @@ typedef __IO uint8_t  vu8;
 typedef __I uint32_t vuc32;  
 typedef __I uint16_t vuc16; 
 typedef __I uint8_t vuc8;  
+#endif
 
-/*
-typedef struct
-{
-  SpiTransStatus_TypeDef    sTransState[sTransBoard_Max];
-  activeBoard_TypeDef       activeBoard;
 
-}SlaveBoardStatus_TypeDef;
-*/
-#define printf LOG
+
+#define RxFlag                          1
+#define TxFlag                          2
+
+//复制一个数组到另一个数组
+#define COPY_ARRAY(dest, src, len) memcpy(dest, src, (len) * sizeof((src)[0]))
+// 板ID位操作函数
+//#define Enable_Board(reg, bit)   ((reg) |= (1 << (bit)))
+//#define Disable_Baord(reg, bit) ((reg) &= ~(1 << (bit)))
+#define whichBoard_Enable(reg, bit)  ((reg) & (1 << (bit)))         //(reg & (1 << bit)) >> bit
+//#define TOGGLE_BIT(reg, bit) ((reg) ^= (1 << (bit)))
+#define MOD_START_BYTE                  0x7E
+//#define MOD_CMD_CODE                    0x03
+#define MOD_PREAMBLE_SIZE               4
+extern uint8_t mod_preamble[MOD_PREAMBLE_SIZE];  //   = {MOD_START_BYTE, 0, 0, 0};
+//uint8_t mod_postamble[2] = {0, STOP_BYTE};
+
+
+#define ModbusDATASize            600     //modubs协议中，存放数据的寄存器长度
+//#define ModbusDATA_AddrOffset     1536    //0x0600
+
+
+
 extern DMA_HandleTypeDef hdma_usart1_tx;
 void Error_Handler(void);
 extern uint8_t USART_DMA_TX_OVER;
 extern modbusHandler_t ModbusH;
 extern uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
-extern SlaveBoardHandler_t SlaveBoardH[8];
-//extern SlaveBoardHandler_t D_I_1_BoardH, D_I_2_BoardH, D_I_3_BoardH, D_I_4_BoardH, D_Q_1_BoardH, D_Q_2_BoardH, MENU_BoardH, RS485_BoardH;
+extern SlaveBoardHandler_t PowerBoardH[4];
 
 #ifdef __cplusplus
 }

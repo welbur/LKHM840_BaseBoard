@@ -2,8 +2,8 @@
 
 // #if not(defined(MBED_H) || defined(__SAM3X8E__) || defined(DISABLE_SPI_SERIALTRANSFER)) // These boards are/will not be supported by SPITransfer.h
 
-#include "SPITransfer.h"
-#include "SPITransfer_C.h"
+#include "BackPanelTrans.h"
+#include "BackPanelTrans_C.h"
 
 /*!
  *    @brief  Create an SPI device with the given CS pin and settings
@@ -115,7 +115,9 @@ bool SPITransfer::Master_SyncWith_Slave(uint8_t rxData)
 		if (!MSP_SPI_read(_spi, &rxack, 1))
 		{
 		} 
-		LOGI("rxack : %d\r\n", rxack);
+		//strcat(LOG_MSG[TransTask_LOG], "rxack : ");	strcat(LOG_MSG[TransTask_LOG], rxack);	strcat(LOG_MSG[TransTask_LOG], "\r\n");	
+		Addto_osPrintf("rxack : %d\r\n", rxack);
+
 		if (rxack == rxData)
 		{
 			return true;
@@ -188,7 +190,8 @@ void SPITransfer::Master_readDATAfrom_Slave_withPacket()
 	// if (sTransState[cBoard] == SpiTrans_S2M_RxData_End) break;
 	if ((HAL_GetTick() - msTickstart) > sTrans_TimeOut)
 	{
-		LOGE("spi trans timeout\r\n");
+		//strcat(LOG_MSG[1], "spi trans timeout\r\n"); 	
+		Addto_osPrintf("spi trans timeout\r\n");
 	}
 #endif
 	_slavebH->spiTransState = SpiTrans_TimeOut;
@@ -215,7 +218,7 @@ void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
 		/* 1------主控板发送 ACK signal 给 slave板 */
 		if (!Master_writeSyncto_Slave(SPI_MASTERRead_ACK))
 		{
-			LOGE("tx ack error\r\n");
+			LOG("tx ack error\r\n");
 			return;
 		}
 #endif
@@ -225,7 +228,8 @@ void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
 		SPI1_CS_DISABLE(boardID);
 		if (_slavebH->spiTransState != SpiTrans_S2M_RxData_End)
 		{
-			LOGE("read rxdata err\r\n");
+			//strcat(LOG_MSG[1], "read rxdata err\r\n"); 	
+			Addto_osPrintf("read rxdata err\r\n");
 			return;
 		}
 
@@ -244,7 +248,7 @@ void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
 		//uint8_t rxack;
 		//LOGI("rxflag...........%d\r\n", HAL_GPIO_ReadPin(SPI1_DQB1_CS_Port, SPI1_DQB2_CS));
 		if (!Master_SyncWith_Slave(SPI_SLAVE_ACK)) {
-			LOGE("read ack from slave error.................................\r\n");
+			LOG("read ack from slave error.................................\r\n");
 			return;
 		}
 
@@ -259,7 +263,7 @@ void SPITransfer::Master_Spi1_Transfer(uint8_t TxRxFlag, uint8_t boardID)
 	}
 	else
 	{
-		LOGE("txrxflag error \r\n");
+		LOG("txrxflag error \r\n");
 	}
 #endif
 	/* 3------接收完数据后，master板发送end信号给slave板------------ */
@@ -305,12 +309,13 @@ void SPITransfer::reset()
 	MSP_SPI_write(_spi, &txdata, 1); //_spi->transfer(0xFF);
 	packet.reset();
 	status = packet.status;
-	LOGE("spi transfer reset \r\n");
+	LOG("spi transfer reset \r\n");
 }
 
 /*
  * 用于c调用
  */
+
 extern void *SPITransfer_C_New(SlaveBoardHandler_t *slavebH, SPI_HandleTypeDef *theSPI, uint8_t master)
 {
 	return new SPITransfer(slavebH, theSPI, (bool)master);

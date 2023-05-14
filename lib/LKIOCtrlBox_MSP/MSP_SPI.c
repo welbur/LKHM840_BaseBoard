@@ -21,29 +21,6 @@ __IO uint32_t sTxRxFlag;
 // uint32_t wTransferState = TRANSFER_WAIT;
 // #include "spi.h"
 
-/**
- * @brief          ��װSPI6д����
- * @param[in]     	data ����������
- * @retval         �յ�������
- */
-uint8_t SPI1_WriteData(uint8_t *data, uint16_t size)
-{
-	LOGI("transmit spi1 data....\r\n");
-	return HAL_SPI_Transmit(&hspi1, data, size, 1000);
-}
-
-/**
- * @brief          ��װSPI2��д������Ƭ��SPI Flashʹ�ã�
- * @param[in]     	TxData ����������
- * @retval         RxData �յ�������
- */
-uint8_t SPI2_ReadWriteByte(uint8_t TxData)
-{
-	uint8_t Rxdata[5];
-	HAL_SPI_Receive(&hspi2, Rxdata, 5, 1000);
-	LOGI("spi2 read data : %d, %d, %d, %d, %d\r\n", Rxdata[0], Rxdata[1], Rxdata[2], Rxdata[3], Rxdata[4]);
-	return Rxdata[0]; // �����յ�������
-}
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
@@ -65,7 +42,7 @@ void MX_SPI1_Init(void)
 	hspi1.Init.CRCPolynomial = 10; // 7
 	if (HAL_SPI_Init(&hspi1) != HAL_OK)
 	{
-		LOGE("error spi");		//Error_Handler();
+		LOG("error spi");		//Error_Handler();
 	}
 }
 /* SPI2 init function */
@@ -85,7 +62,7 @@ void MX_SPI2_Init(void)
 	hspi2.Init.CRCPolynomial = 10;
 	if (HAL_SPI_Init(&hspi2) != HAL_OK)
 	{
-		LOGE("error spi");
+		LOG("error spi");
 		// Error_Handler();
 	}
 }
@@ -97,19 +74,18 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle)
 	{
 		/* SPI1 clock enable */
 		__HAL_RCC_SPI1_CLK_ENABLE();
-		__HAL_RCC_GPIOA_CLK_ENABLE();
+		SPI1_GPIO_CLK_ENABLE();				//__HAL_RCC_GPIOA_CLK_ENABLE();
 		/**SPI1 GPIO Configuration
-		PA4     ------> SPI1_NSS
 		PA5     ------> SPI1_SCK
 		PA6     ------> SPI1_MISO
 		PA7     ------> SPI1_MOSI
 		*/
-		GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+		GPIO_InitStruct.Pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;				// GPIO_PULLUP;     //GPIO_NOPULL
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM; // GPIO_SPEED_FREQ_LOW;	//GPIO_SPEED_FREQ_VERY_HIGH;
 		GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+		HAL_GPIO_Init(SPI1_GPIO_PORT, &GPIO_InitStruct);
 		/* NVIC for SPI */
 		HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
 		HAL_NVIC_EnableIRQ(SPI1_IRQn);
@@ -118,18 +94,18 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle)
 	{
 		/* SPI2 clock enable */
 		__HAL_RCC_SPI2_CLK_ENABLE();
-		__HAL_RCC_GPIOB_CLK_ENABLE();
+		SPI2_GPIO_CLK_ENABLE();	//__HAL_RCC_GPIOB_CLK_ENABLE();
 		/**SPI2 GPIO Configuration
 		PB13     ------> SPI2_SCK
 		PB14     ------> SPI2_MISO
 		PB15     ------> SPI2_MOSI
 		*/
-		GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
+		GPIO_InitStruct.Pin = SPI2_SCK_PIN | SPI2_MISO_PIN | SPI2_MOSI_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 		GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		HAL_GPIO_Init(SPI2_GPIO_PORT, &GPIO_InitStruct);
 		/* NVIC for SPI */
 		HAL_NVIC_SetPriority(SPI2_IRQn, 1, 0);
 		HAL_NVIC_EnableIRQ(SPI2_IRQn);
@@ -145,12 +121,11 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 		__HAL_RCC_SPI1_FORCE_RESET();
 		__HAL_RCC_SPI1_RELEASE_RESET();
 		/**SPI1 GPIO Configuration
-		PA4     ------> SPI1_NSS
 		PA5     ------> SPI1_SCK
 		PA6     ------> SPI1_MISO
 		PA7     ------> SPI1_MOSI
 		*/
-		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+		HAL_GPIO_DeInit(SPI1_GPIO_PORT, SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN);
 	}
 	else if (spiHandle->Instance == SPI2)
 	{
@@ -163,7 +138,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 		PB14     ------> SPI2_MISO
 		PB15     ------> SPI2_MOSI
 		*/
-		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15);
+		HAL_GPIO_DeInit(SPI2_GPIO_PORT, SPI2_SCK_PIN | SPI2_MISO_PIN | SPI2_MOSI_PIN);
 		HAL_NVIC_DisableIRQ(SPI2_IRQn);
 	}
 }
@@ -172,60 +147,36 @@ void SPITransfer_Init(void)
 {
 	/*******************************************       先初始化需要用到的GPIO引脚      *************************************/
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	/*Configure GPIO pins : PB0 PB1 PB2 PB3 PB4 PB5 PB6 PB7
-	 *        PB0~PB7定义为spi1 cs的引脚
+	/*Configure GPIO pins : PB4 PB5 PB6 PB7
+	 *        PB4~PB7定义为spi1 cs的引脚
 	 */
-	SPI1_DIB1_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DIB1_CS;
+	PowerB_SPI1_CS1_CLK_ENABLE();
+	GPIO_InitStruct.Pin = PowerB_SPI1_CS1;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(SPI1_DIB1_CS_Port, &GPIO_InitStruct);
-	SPI1_DIB2_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DIB2_CS;
+	HAL_GPIO_Init(PowerB_SPI1_CS1_Port, &GPIO_InitStruct);
+	PowerB_SPI1_CS2_CLK_ENABLE();
+	GPIO_InitStruct.Pin = PowerB_SPI1_CS2;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(SPI1_DIB2_CS_Port, &GPIO_InitStruct);
-	SPI1_DIB3_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DIB3_CS;
+	HAL_GPIO_Init(PowerB_SPI1_CS2_Port, &GPIO_InitStruct);
+	PowerB_SPI1_CS3_CLK_ENABLE();
+	GPIO_InitStruct.Pin = PowerB_SPI1_CS3;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_DIB3_CS_Port, &GPIO_InitStruct);
-	SPI1_DIB4_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DIB4_CS;
+	HAL_GPIO_Init(PowerB_SPI1_CS3_Port, &GPIO_InitStruct);
+	PowerB_SPI1_CS4_CLK_ENABLE();
+	GPIO_InitStruct.Pin = PowerB_SPI1_CS4;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_DIB4_CS_Port, &GPIO_InitStruct);
-	SPI1_DQB1_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DQB1_CS;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_DQB1_CS_Port, &GPIO_InitStruct);
-	SPI1_DQB2_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_DQB2_CS;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_DQB2_CS_Port, &GPIO_InitStruct);
-	SPI1_RS485B_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_RS485B_CS;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_RS485B_CS_Port, &GPIO_InitStruct);
-	SPI1_MENUB_CS_CLK_ENABLE();
-	GPIO_InitStruct.Pin = SPI1_MENUB_CS;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(SPI1_MENUB_CS_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(PowerB_SPI1_CS4_Port, &GPIO_InitStruct);
 	/*******************************************       将所有cs引脚都默认设为高电平     *************************************/
-	HAL_GPIO_WritePin(SPI1_DIB1_CS_Port, SPI1_DIB1_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_DIB2_CS_Port, SPI1_DIB2_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_DIB3_CS_Port, SPI1_DIB3_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_DIB4_CS_Port, SPI1_DIB4_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_DQB1_CS_Port, SPI1_DQB1_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_DQB2_CS_Port, SPI1_DQB2_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_RS485B_CS_Port, SPI1_RS485B_CS, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPI1_MENUB_CS_Port, SPI1_MENUB_CS, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PowerB_SPI1_CS1_Port, PowerB_SPI1_CS1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PowerB_SPI1_CS2_Port, PowerB_SPI1_CS2, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PowerB_SPI1_CS3_Port, PowerB_SPI1_CS3, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PowerB_SPI1_CS4_Port, PowerB_SPI1_CS4, GPIO_PIN_SET);
 }
 
 /**
@@ -286,7 +237,7 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
  */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	LOGI("spi rx callback\r\n");
+	LOG("spi rx callback\r\n");
 	sTxRxFlag = SpiRx_COMPLETE;
 }
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
@@ -304,7 +255,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
  */
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
-	LOGE("spi error callback\r\n");
+	LOG("spi error callback\r\n");
 	sTxRxFlag = SpiTxRx_ERROR;
 	HAL_SPI_MspDeInit(hspi);
 	HAL_SPI_MspInit(hspi);

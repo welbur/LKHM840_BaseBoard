@@ -1,13 +1,15 @@
-#ifndef SPITransfer_h
-#define SPITransfer_h
+#ifndef _BACKPANELTRANS_H_
+#define _BACKPANELTRANS_H_
 
 //#pragma once
 
 #include "Packet.h"
-#include "stm32f4xx_hal.h"
+//#include "stm32f4xx_hal.h"
 //#include "SlaveBoardConfig.h"
 //#include "SPITransfer_C.h"
-#include "../LKIOCtrlBox_MSP/MSP_SPI.h"
+//#include "../LKIOCtrlBox_MSP/MSP_SPI.h"
+#include "LOG.h"
+#include "main.h"
 
 #define null		-1
 
@@ -130,5 +132,5 @@ class SPITransfer
 	bool _begun;
 };
 
-#endif // SPITransfer_H
+#endif // _BACKPANELTRANS_H_
 

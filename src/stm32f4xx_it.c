@@ -64,6 +64,7 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim2;
 /* USER CODE BEGIN EV */
 
@@ -80,7 +81,7 @@ extern TIM_HandleTypeDef htim2;
   */
 void EXTI0_IRQHandler(void)
 {
-  LOGI("exti0 irq\r\n");
+  LOG("exti0 irq\r\n");
 }
 /**
   * @brief  This function handles External line 3 interrupt request.
@@ -89,10 +90,12 @@ void EXTI0_IRQHandler(void)
   */
 void EXTI3_IRQHandler(void)
 {
-#ifdef DEVBoard
+#if defined(DEVBoard)
   HAL_GPIO_EXTI_IRQHandler(DIB_INT_PIN1);
-#else
+#elif defined(DEVBoardYD)
   HAL_GPIO_EXTI_IRQHandler(KEY_Pin);
+#else
+  HAL_GPIO_EXTI_IRQHandler(PowerB_INT4);
 #endif
 }
 /**
@@ -102,7 +105,7 @@ void EXTI3_IRQHandler(void)
   */
 void EXTI4_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(DIB_INT_PIN2);
+  HAL_GPIO_EXTI_IRQHandler(PowerB_INT3);
 }
 
 /**
@@ -110,16 +113,15 @@ void EXTI4_IRQHandler(void)
   */
 void EXTI9_5_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(DQB_INT_PIN1);
+  HAL_GPIO_EXTI_IRQHandler(PowerB_INT2);
+  HAL_GPIO_EXTI_IRQHandler(PowerB_INT1);
 }
 /**
   * @brief This function handles EXTI line[15:10] interrupts.
   */
 void EXTI15_10_IRQHandler(void)
 {
-#ifdef DEVBoardYD
-  HAL_GPIO_EXTI_IRQHandler(DIB_INT_PIN1);
-#else
+#ifdef DEVBoard
   HAL_GPIO_EXTI_IRQHandler(KEY_Pin);
 #endif
 }
@@ -318,13 +320,7 @@ void TIM2_IRQHandler(void)
   */
 void USART1_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART1_IRQn 0 */
-
-  /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
 }
 
 /**
@@ -332,14 +328,15 @@ void USART1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
-//  LOGI("usart2 irq \r\n");
-  /* USER CODE BEGIN USART2_IRQn 1 */
+}
 
-  /* USER CODE END USART2_IRQn 1 */
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart3);
 }
 
 /**

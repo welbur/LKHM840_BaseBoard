@@ -8,7 +8,7 @@
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"
-#include "main.h"
+//#include "main.h"
 #include "Modbus.h"
 
 
@@ -26,12 +26,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	//LOGI("txcallback\r\n");
 	if (huart->Instance == USART1) 
 	{
-		//USART_DMA_TX_OVER = 1;
-		//LED_G_TogglePin;
-		//LED_R(1-USART_DMA_TX_OVER);
-		//__HAL_DMA_DISABLE(&hdma_usart1_tx);
-	} else if (huart->Instance == USART2) 
-	{
 		/* Modbus RTU TX callback BEGIN */
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		int i;
@@ -45,6 +39,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	   		}
 		}
 		portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+	} else if (huart->Instance == USART2) 
+	{
+		//HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1);
 	}
 	
 	/* Modbus RTU TX callback END */

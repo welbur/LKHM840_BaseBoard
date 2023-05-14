@@ -18,7 +18,8 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
-#include "../LKIOCtrlBox_MSP/MSP_GPIO.h"
+#include "PinConfig.h"
+//#include "../LKIOCtrlBox_MSP/MSP_GPIO.h"
 
 typedef enum
 {

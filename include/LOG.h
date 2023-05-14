@@ -10,12 +10,32 @@
  extern "C" {
 #endif
 
+#include "stdio.h"
 #include "SEGGER_RTT.h"
 
-//#define LOG_DEBUG 1
 
-#ifdef LOG_DEBUG
 
+#define MSG_LENGTH 512
+
+extern char LOG_MSG[MSG_LENGTH];
+
+#if defined(UartPrintf)
+#ifdef __GNUC__
+  /* With GCC, small printf (option LD Linker->Libraries->Small printf
+     set to 'Yes') calls __io_putchar() */
+  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+
+#define LOG_CLEAR()
+#define LOG     printf
+#define LOGI    printf
+#define LOGW    printf
+#define LOGE    printf
+//#define LOGos   Addto_osPrintf
+
+#elif defined(LOG_DEBUG)
 
 #define LOG_PROTO(type,color,format,...)            \
         SEGGER_RTT_printf(0,"%s%s" format"%s", \
@@ -35,14 +55,11 @@
 #define LOGW(format,...) LOG_PROTO("W: ", RTT_CTRL_TEXT_BRIGHT_YELLOW, format, ##__VA_ARGS__)
 #define LOGE(format,...) LOG_PROTO("E: ", RTT_CTRL_TEXT_BRIGHT_RED   , format, ##__VA_ARGS__)
 
-#else
-#define LOG_CLEAR()
-#define LOG
-#define LOGI
-#define LOGW
-#define LOGE
-
 #endif
+
+//#define printf LOG
+extern void Addto_osPrintf(char *format, ...);
+
 
 #ifdef __cplusplus
 }
