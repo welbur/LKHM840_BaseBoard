@@ -13,8 +13,8 @@
 #include "LOG.h"
 //#include "main.h"
 
-#define SlaveBoard_Max                  8       //定义板子的数量 di板4块，dq板2块，rs485板1块，menu板1块
-#define DIBoard_NO                      4       //定义DI板子的数量 4块
+//#define SlaveBoard_Max                  8       //定义板子的数量 di板4块，dq板2块，rs485板1块，menu板1块
+#define PowerBoardNum                   4       //定义DI板子的数量 4块
 #define sTrans_TimeOut                  100       //5 = 5ms
 #define sTxRx_TimeOut                   1
 #define spiRxDataLen                    100

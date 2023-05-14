@@ -97,7 +97,7 @@ const osThreadAttr_t MainBoard2PowerBoard_TransTask_attributes = {
 
 void StartDefaultTask(void *argument);
 void osPrintLOG(void *argument);
-void Start_DIBoard_TransTask(void *argument);
+void Start_ReadPowerBoardData_TransTask(void *argument);
 void Start_MainBoard2PowerBoard_TransTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -180,7 +180,7 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 		uint8_t re_arr_size = MOD_PREAMBLE_SIZE; // 暂用数组前面的4个元素，作为包头使用
 		uint8_t re_arr[128];
 		/*1-------------------------有触发信号后，读取相关slave板的所有数据*/
-		for (int i = 0; i < DIBoard_NO; i++)
+		for (int i = 0; i < PowerBoardNum; i++)
 		{
 			if (PowerBoardH[i].isBoard_Rx_En)
 			{
@@ -210,7 +210,7 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 			/*放到modbus里面去发送数据*/
 			ModbusH.spiRx_uartTx_u8regs = re_arr;
 			ModbusH.spiRx_uartTx_u8regs_size = re_arr_size;
-			spiRxUartTxBuffer(&ModbusH);
+			//spiRxUartTxBuffer(&ModbusH);
 			ModbusH.spiRx_uartTx_u8regs_size = 0;
 		}
 		osMutexRelease(mutex);
