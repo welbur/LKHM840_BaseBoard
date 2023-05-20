@@ -14,12 +14,33 @@
 #include <stdbool.h>
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
+//#include "ModbPacket.h"
 //#include "../../src/FreeRTOS/CMSIS_RTOS_V2/cmsis_os.h"
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
 #include "PinConfig.h"
+#include "LOG.h"
 //#include "../LKIOCtrlBox_MSP/MSP_GPIO.h"
+
+
+#define FC4_SoftVer_AddrOffset 			0xFDDE      // - ModbData_SoftVer_Addr		// --->0x0000
+#define FC4_DevName_AddrOffset			0xFCCD      // - ModbData_DevName_Addr		// --->0x0001
+#define FC3_DIBoard_AddrOffset			0x0001      // - ModbData_DIBoard_Addr		// --->0x0010~0x0063
+#define FC3_BoardERR_AddrOffset			0x0601      // - ModbData_BoardERR_Addr		// --->0x0064~0x0073
+#define FC15_DQBoard_AddrOffset 		0x0400      // - ModbData_DQBoard_Addr		// --->0x0074~0x00F3
+#define FC16_RS485Board_AddrOffset 		0x0701      // - ModbData_RS485Board_Addr	// --->0x00F4~0x0283
+#define FC16_PowerBoard_AddrOffset 		0x0901      // - ModbData_PowerBoard_Addr	// --->0x0284~0x0320
+
+#define ModbData_SoftVer_Addr				0x0000
+#define ModbData_DevName_Addr				0x0001
+#define ModbData_DIBoard_Addr				0x0010
+#define ModbData_BoardERR_Addr				0x0064
+#define ModbData_DQBoard_Addr				0x0074
+#define ModbData_RS485Board_Addr			0x00F4
+#define ModbData_PowerBoard_Addr			0x0284
+	
+
 
 typedef enum
 {
@@ -36,7 +57,20 @@ typedef enum
     MB_MASTER = 4
 }mb_masterslave_t ;
 
-
+/**
+ * @struct FC_StartAddr_t
+ * @brief
+ * 
+ * 
+ */
+typedef struct
+{
+    uint16_t FC15_RS485Board_u16StartCoil;     
+    uint16_t FC15_RS485Board_u16regsno;     
+    uint16_t FC16_u16StartAddr; 
+    uint16_t FC16_u16regsno;
+}
+FC_Addr_t;
 
 /**
  * @enum MB_FC
@@ -165,20 +199,7 @@ tcpclients_t;
 
 #endif
 
-/**
- * @struct FC_StartAddr_t
- * @brief
- * 
- * 
- */
-typedef struct
-{
-    uint16_t FC15_u16StartCoil;     
-    uint16_t FC15_u16regsno;     
-    uint16_t FC16_u16StartAddr; 
-    uint16_t FC16_u16regsno;
-}
-FC_Addr_t;
+
 
 /**
  * @struct modbusHandler_t
@@ -205,13 +226,15 @@ typedef struct
 	uint8_t dataRX;
 	int8_t i8state;
 
+    uint16_t current_u16regs_num;
+
     uint8_t *spiRx_uartTx_u8regs;          //used by spi trans
     uint8_t spiRx_uartTx_u8regs_size;
 
 	//FreeRTOS components
 
     // FC_Addr_t
-    FC_Addr_t  FCAddrHandle;
+    //FC_Addr_t  FCAddrHandle;
 
     uint8_t FCStatus[17];
 

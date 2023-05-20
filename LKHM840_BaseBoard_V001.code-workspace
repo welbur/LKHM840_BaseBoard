@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../LKHM840_PowerBaord_V001"
+		}
+	],
+	"settings": {
+		"cortex-debug.armToolchainPath.osx": "/Applications/ArmGNUToolchain/12.2.mpacbti-rel1/arm-none-eabi/bin",
+		"cortex-debug.armToolchainPath.linux": "",
+		"files.associations": {
+			"stm32f4xx_hal.h": "c",
+			"cmath": "c",
+			"*.tcc": "c"
+		}
+	}
+}

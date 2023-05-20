@@ -103,16 +103,14 @@ typedef __I uint8_t vuc8;
 //#define Disable_Baord(reg, bit) ((reg) &= ~(1 << (bit)))
 #define whichBoard_Enable(reg, bit)  ((reg) & (1 << (bit)))         //(reg & (1 << bit)) >> bit
 //#define TOGGLE_BIT(reg, bit) ((reg) ^= (1 << (bit)))
+
 #define MOD_START_BYTE                  0x7E
 //#define MOD_CMD_CODE                    0x03
 #define MOD_PREAMBLE_SIZE               4
 extern uint8_t mod_preamble[MOD_PREAMBLE_SIZE];  //   = {MOD_START_BYTE, 0, 0, 0};
 //uint8_t mod_postamble[2] = {0, STOP_BYTE};
 
-
-#define ModbusDATASize            600     //modubs协议中，存放数据的寄存器长度
-//#define ModbusDATA_AddrOffset     1536    //0x0600
-
+#define ModbusDATASize            800     //modubs协议中，存放数据的寄存器长度
 
 
 extern DMA_HandleTypeDef hdma_usart1_tx;
@@ -120,7 +118,8 @@ void Error_Handler(void);
 extern uint8_t USART_DMA_TX_OVER;
 extern modbusHandler_t ModbusH;
 extern uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
-extern SlaveBoardHandler_t PowerBoardH[4];
+extern uint8_t PowerBoard_Trig[PowerBoardNum];   //extern SlaveBoardHandler_t PowerBoardH[4];
+extern uint8_t PowerBoard_DATA[255], MasterB2PowerB_Cmd[128];
 
 #ifdef __cplusplus
 }

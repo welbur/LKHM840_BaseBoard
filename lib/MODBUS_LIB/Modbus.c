@@ -26,8 +26,8 @@
 #define ENABLE_USART_DMA 0
 #endif
 
-#define FC15_AddrOffset 1024 // 0x0400
-#define FC16_AddrOffset 1536 // 0x0600
+//#define FC15_AddrOffset 1024 // 0x0400
+//#define FC16_AddrOffset 1536 // 0x0600
 
 #define bitRead(value, bit) (((value) >> (bit)) & 0x01)
 #define bitSet(value, bit) ((value) |= (1UL << (bit)))
@@ -671,7 +671,7 @@ void StartTaskModbusSlave(void *argument)
 
 		// validate message: CRC, FCT, address and size
 		uint8_t u8exception = validateRequest(modH);
-		// LOGW("u8exception : %d\r\n", u8exception);
+		//LOGW("u8exception : %d\r\n", u8exception);
 		if (u8exception > 0)
 		{
 			if (u8exception != ERR_TIME_OUT)
@@ -690,6 +690,7 @@ void StartTaskModbusSlave(void *argument)
 
 		// process message
 		modH->FCStatus[modH->u8Buffer[FUNC]] = 1;
+		//LOGW("FUNC code  : %d\r\n", modH->u8Buffer[FUNC]);
 		switch (modH->u8Buffer[FUNC])
 		{
 			case MB_FC_READ_COILS:
@@ -1346,9 +1347,11 @@ uint8_t validateRequest(modbusHandler_t *modH)
 	case MB_FC_READ_INPUT_REGISTER:
 	case MB_FC_WRITE_MULTIPLE_REGISTERS:
 		u16AdRegs = word(modH->u8Buffer[ADD_HI], modH->u8Buffer[ADD_LO]);
-		u16AdRegs = u16AdRegs - FC16_AddrOffset;
+		//u16AdRegs = u16AdRegs - FC16_AddrOffset;
 		u16NRegs = word(modH->u8Buffer[NB_HI], modH->u8Buffer[NB_LO]);
-		if ((u16AdRegs + u16NRegs) > modH->u16regsize)
+		//LOG("u16NRegs : %04X\r\n", u16NRegs);
+		//LOG("u16AdRegs : %04X\r\n", u16AdRegs);
+		if (u16NRegs > modH->u16regsize)			//if ((u16AdRegs + u16NRegs) > modH->u16regsize)
 			return EXC_ADDR_RANGE;
 
 		// verify answer frame size in bytes
@@ -1827,13 +1830,10 @@ int8_t process_FC15(modbusHandler_t *modH)
 	// get the first and last coil from the message
 	uint16_t u16StartCoil = word(modH->u8Buffer[ADD_HI], modH->u8Buffer[ADD_LO]);
 	uint16_t u16Coilno = word(modH->u8Buffer[NB_HI], modH->u8Buffer[NB_LO]);
-	
-	u16StartCoil = u16StartCoil - FC15_AddrOffset;
-	if (u16StartCoil < 0)
-		return 0;
-	modH->FCAddrHandle.FC15_u16StartCoil = u16StartCoil;
-	modH->FCAddrHandle.FC15_u16regsno = u16Coilno / 16;
-	// LOGI("u16StartCoil : %04X\r\n", u16StartCoil);
+
+	u16StartCoil = u16StartCoil - (FC15_DQBoard_AddrOffset - ModbData_DQBoard_Addr);
+	if (u16StartCoil < 0) return 0;
+	modH->current_u16regs_num = u16Coilno / 16;
 
 	// read each coil from the register map and put its value inside the outcoming message
 	u8bitsno = 0;
@@ -1869,6 +1869,7 @@ int8_t process_FC15(modbusHandler_t *modH)
 	modH->u8BufferSize = 6;
 	u8CopyBufferSize = modH->u8BufferSize + 2;
 	sendTxBuffer(modH);
+	//Modbus_FC15_ParsePacket(modH->u16regs, u16StartCoil, (u16Coilno / 16));
 	return u8CopyBufferSize;
 }
 
@@ -1888,12 +1889,17 @@ int8_t process_FC16(modbusHandler_t *modH)
 	uint16_t i;
 	uint16_t temp;
 
-	u16StartAdd = u16StartAdd - FC16_AddrOffset;
-	if (u16StartAdd < 0)
+	if (u16StartAdd == FC16_RS485Board_AddrOffset)
+	{
+		u16StartAdd = u16StartAdd - (FC16_RS485Board_AddrOffset - ModbData_RS485Board_Addr);
+	} else if (u16StartAdd == FC16_PowerBoard_AddrOffset)
+	{
+		u16StartAdd = u16StartAdd - (FC16_PowerBoard_AddrOffset - ModbData_PowerBoard_Addr);
+	} else
+	{
 		return 0;
-	modH->FCAddrHandle.FC16_u16StartAddr = u16StartAdd;
-	modH->FCAddrHandle.FC16_u16regsno = u16regsno;
-	// LOGI("u16StartAdd : %04X\r\n", u16StartAdd);
+	}
+	modH->current_u16regs_num = u16regsno;
 	//  build header
 	modH->u8Buffer[NB_HI] = 0;
 	modH->u8Buffer[NB_LO] = (uint8_t)u16regsno; // answer is always 256 or less bytes
@@ -1910,5 +1916,6 @@ int8_t process_FC16(modbusHandler_t *modH)
 	}
 	u8CopyBufferSize = modH->u8BufferSize + 2;
 	sendTxBuffer(modH);
+	//Modbus_FC16_ParsePacket(modH->u16regs, u16StartAdd, u16regsno);
 	return u8CopyBufferSize;
 }

@@ -143,7 +143,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 	}
 }
 
-void SPITransfer_Init(void)
+void SPITransfer_GPIO_Init(void)
 {
 	/*******************************************       先初始化需要用到的GPIO引脚      *************************************/
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -166,17 +166,25 @@ void SPITransfer_Init(void)
 	GPIO_InitStruct.Pin = PowerB_SPI1_CS3;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(PowerB_SPI1_CS3_Port, &GPIO_InitStruct);
 	PowerB_SPI1_CS4_CLK_ENABLE();
 	GPIO_InitStruct.Pin = PowerB_SPI1_CS4;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(PowerB_SPI1_CS4_Port, &GPIO_InitStruct);
 	/*******************************************       将所有cs引脚都默认设为高电平     *************************************/
 	HAL_GPIO_WritePin(PowerB_SPI1_CS1_Port, PowerB_SPI1_CS1, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(PowerB_SPI1_CS2_Port, PowerB_SPI1_CS2, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(PowerB_SPI1_CS3_Port, PowerB_SPI1_CS3, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(PowerB_SPI1_CS4_Port, PowerB_SPI1_CS4, GPIO_PIN_SET);
+}
+
+
+uint8_t SPI1_CS_VALUE(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+{
+	return HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
 }
 
 /**

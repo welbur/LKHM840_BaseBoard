@@ -190,7 +190,6 @@
                 "PLATFORMIO=60107",
                 "STM32F412Rx",
                 "STM32F4xx",
-                "DEVBoardYD",
                 "UartPrintf",
                 "STM32F4xx",
                 "USE_HAL_DRIVER",

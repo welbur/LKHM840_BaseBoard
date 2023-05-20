@@ -43,14 +43,17 @@ uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
 char LOG_MSG[MSG_LENGTH];
 
 /*Slave Board相关参数*/
-SlaveBoardHandler_t PowerB_1_BoardH, PowerB_2_BoardH, PowerB_3_BoardH, PowerB_4_BoardH;
-uint8_t PowerB_1_DATA[128], PowerB_2_DATA[128], PowerB_3_DATA[128], PowerB_4_DATA[128];
-SlaveBoardHandler_t PowerBoardH[4];
+uint8_t PowerBoard_Trig[PowerBoardNum] = {0, 0, 0, 0};
+uint8_t PowerBoard_DATA[255], MasterB2PowerB_Cmd[128];
+//SlaveBoardHandler_t PowerB_1_BoardH, PowerB_2_BoardH, PowerB_3_BoardH, PowerB_4_BoardH;
+//uint8_t PowerB_1_DATA[128], PowerB_2_DATA[128], PowerB_3_DATA[128], PowerB_4_DATA[128];
+//SlaveBoardHandler_t PowerBoardH[4];
 /* Private function prototypes -----------------------------------------------*/
 
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
-void DI_Board_Init(void);
+void SPITRANS_Init(void);
+//void DI_Board_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /**/
 
@@ -78,7 +81,7 @@ int main(void)
 	MX_SPI2_Init();
 
 	EXTILine_Config();
-	SPITransfer_Init();
+	SPITransfer_GPIO_Init();
 
 #if 1
 	/* Modbus 从站初始化Slave initialization */
@@ -101,7 +104,7 @@ int main(void)
 	/***********/
 
 	LOG("start Modbud......\r\n");
-
+#if 0
 	/*Slave板状态 初始化*/
 	PowerB_1_BoardH.BoardID = PowerBoard_1;
 	PowerB_1_BoardH.isBoard_Rx_En = 0;
@@ -130,10 +133,11 @@ int main(void)
 	PowerB_4_BoardH.spiRx_uartTx_u8regs_size = sizeof(PowerB_4_DATA) / sizeof(PowerB_4_DATA[0]);
 	PowerB_4_BoardH.spiTransState = SpiTrans_Wait;
 	PowerBoardH[PowerBoard_4] = PowerB_4_BoardH;
-
+#endif
 	/* Infinite loop */
 	osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
 	MX_FREERTOS_Init();
+	SPITRANS_Init();
 	//  DI_Board_Init();
 	/* Start scheduler */
 	LOG("start osKernel\r\n");
@@ -242,25 +246,25 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 #if defined(DEVBoard) || defined(DEVBoardYD)
 	case KEY_Pin:
-		PowerBoardH[PowerBoard_1].isBoard_Rx_En = 1;
+		PowerBoard_Trig[PowerBoard_1] = 1;	//PowerBoardH[PowerBoard_1].isBoard_Rx_En = 1;
 		Addto_osPrintf("DEV button........\r\n");
 		ledg_v = 1 - ledg_v;
 		LED_R(ledg_v);
 		break;
 #endif
 	case PowerB_INT1:
-		PowerBoardH[PowerBoard_1].isBoard_Rx_En = 1;
+		PowerBoard_Trig[PowerBoard_1] = 1;	//PowerBoardH[PowerBoard_1].isBoard_Rx_En = 1;
 		//Addto_osPrintf("Power board int 1..\r\n");
 		break;
 	case PowerB_INT2:
-		PowerBoardH[PowerBoard_2].isBoard_Rx_En = 1;
+		PowerBoard_Trig[PowerBoard_2] = 1;	//PowerBoardH[PowerBoard_2].isBoard_Rx_En = 1;
 		break;
 	case PowerB_INT3:
-		PowerBoardH[PowerBoard_3].isBoard_Rx_En = 1;
+		PowerBoard_Trig[PowerBoard_3] = 1;	//PowerBoardH[PowerBoard_3].isBoard_Rx_En = 1;
 		break;
 #ifndef DEVBoardYD
 	case PowerB_INT4:
-		PowerBoardH[PowerBoard_4].isBoard_Rx_En = 1;
+		PowerBoard_Trig[PowerBoard_4] = 1;	//PowerBoardH[PowerBoard_4].isBoard_Rx_En = 1;
 		break;
 #endif
 	default:

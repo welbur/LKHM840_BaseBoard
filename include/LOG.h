@@ -13,9 +13,9 @@
 #include "stdio.h"
 #include "SEGGER_RTT.h"
 
+//#define LOG_MSG_MAX_SIZE 1024
 
-
-#define MSG_LENGTH 512
+#define MSG_LENGTH 1024
 
 extern char LOG_MSG[MSG_LENGTH];
 

@@ -59,7 +59,7 @@ void MX_SPI2_Init(void);
 void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle);
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle);
 
-void SPITransfer_Init(void);
+void SPITransfer_GPIO_Init(void);
 
 uint8_t MSP_SPI_write(SPI_HandleTypeDef* spiHandle, uint8_t *txData, uint16_t txLen);
 uint8_t MSP_SPI_read(SPI_HandleTypeDef* spiHandle, uint8_t *rxData, uint16_t rxLen);
