@@ -112,7 +112,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 	if (spiHandle->Instance == SPI1)
 	{
 		/* Peripheral clock disable */
-		__HAL_RCC_SPI1_CLK_DISABLE();
+		//__HAL_RCC_SPI1_CLK_DISABLE();
 		__HAL_RCC_SPI1_FORCE_RESET();
 		__HAL_RCC_SPI1_RELEASE_RESET();
 		/**SPI1 GPIO Configuration
@@ -125,7 +125,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 	else if (spiHandle->Instance == SPI2)
 	{
 		/* Peripheral clock disable */
-		__HAL_RCC_SPI2_CLK_DISABLE();
+		//__HAL_RCC_SPI2_CLK_DISABLE();
 		__HAL_RCC_SPI2_FORCE_RESET();
 		__HAL_RCC_SPI2_RELEASE_RESET();
 		/**SPI2 GPIO Configuration
@@ -294,12 +294,12 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
 {
 	for (uint16_t i = 0; i < rxLen; i++)
 	{
-		if (HAL_SPI_Receive_IT(&hspi1, rxData, 1) != HAL_OK)
+		if (HAL_SPI_Receive(spiHandle, rxData, 1, 10) != HAL_OK)
 		{
 			// LOGE("spi MSP_SPI_read timeout....\r\n");
 			return 0;
 		}
-		LOG("%02X ", *rxData);
+		//LOG("%d ", *rxData);
 		while (HAL_SPI_GetState(spiHandle) != HAL_SPI_STATE_READY)
 		{
 		}

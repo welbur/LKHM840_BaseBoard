@@ -111,27 +111,27 @@ BackPanelTransStatus_TypeDef BackPanel_readDATA_withPacket()
 	{
 		if (!MSP_SPI_read(&BackPanelTransPort, &recChar, 1))
 		{
-			if (_printDebug) LOG("BackPanel_read one DATA error\r\n");
+			if (_printDebug) Addto_osPrintf("BackPanel_read one DATA error\r\n");
 			return bpTrans_SPI_Err;
 		}
-		//LOG("%d, ", recChar);
+		Addto_osPrintf("%d, ", recChar);
 		PacketParse(&recChar, true);	//bytesRead = PacketParse(recChar, true);
 		//status = packet.status;
 		//LOG("time : %ld, status : %d\r\n", (xTaskGetTickCount() - msTickstart), pktHandle.status);
 		if (pktHandle.status != CONTINUE)
 		{
-			if (_printDebug) LOG("\r\nstatus : %d, bytesRead : %d\r\n", pktHandle.status, pktHandle.bytesRead);
+			if (_printDebug) Addto_osPrintf("\r\nstatus : %d, bytesRead : %d\r\n", pktHandle.status, pktHandle.bytesRead);
 			if (pktHandle.status < 0)
 			{
 				BackPanel_reset();
-				if (_printDebug) LOG("BackPanel_readData error\r\n");
+				if (_printDebug) Addto_osPrintf("BackPanel_readData error\r\n");
 				return bpTrans_Data_Err;
 			} 
 			return bpTrans_OK; 
 		}
 	} while ((xTaskGetTickCount() - msTickstart) < _readDataTimeOut);//sTrans_TimeOut); // while(recChar != 129); //0xAA);
 
-	if (_printDebug) LOG("BackPanel_readData timeout\r\n");
+	if (_printDebug) Addto_osPrintf("BackPanel_readData timeout\r\n");
 
 	return bpTrans_Data_TimeOut;
 }
@@ -267,19 +267,19 @@ BackPanelTransStatus_TypeDef BackPanelTrans_Slave_readDataFrom_Master(uint8_t *r
 BackPanelTransStatus_TypeDef BackPanelTrans_Master_readDataFrom_Slave(BoardID_TypeDef currentID, uint8_t *readData, uint16_t *readDataLen)
 {
 	BackPanelTransStatus_TypeDef bpstatus;
-	if (_printDebug) LOG("start read data from power board %d\r\n", currentID);
+	if (_printDebug) Addto_osPrintf("start read data from power board %d\r\n", currentID);
 	SPI1_CS_ENABLE(currentID);
 	/* 1------主控板发送 ACK signal 给 slave板 */
 	bpstatus = BackPanel_WriteACK(SPI_MASTER_ACK);
 	if (!bpstatus)
 	{
-		if (_printDebug) LOG("master tx ack error\r\n");
+		if (_printDebug) Addto_osPrintf("master tx ack error\r\n");
 		return bpstatus;
 	}
 	/* 2------从slave板接收数据------------ */
 	//LOGI("start read data from slave ......\r\n");
 	bpstatus = BackPanel_readDATA_withPacket(); // 1-----接收数据
-	if (_printDebug) LOG("end read data from slave ......\r\n");
+	if (_printDebug) Addto_osPrintf("end read data from slave ......\r\n");
 	SPI1_CS_DISABLE(currentID);
 	
 #if 1

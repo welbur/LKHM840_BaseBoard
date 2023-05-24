@@ -15,7 +15,7 @@
 
 //#define LOG_MSG_MAX_SIZE 1024
 
-#define MSG_LENGTH 1024
+#define MSG_LENGTH 2048
 
 char LOG_MSG[MSG_LENGTH];
 

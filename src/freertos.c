@@ -214,12 +214,12 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 			{
 				uint16_t rDataLen;
 				uint8_t *rData = NULL;
-				LOG("start time : %ld\r\n", xTaskGetTickCount());
+				Addto_osPrintf("start time : %ld\r\n", xTaskGetTickCount());
 				BackPanelTransStatus_TypeDef bpstatus = bpTrans_Wait;
-				//HAL_SPI_MspInit(&hspi1);
+				HAL_NVIC_EnableIRQ(&hspi1);
 				bpstatus = BackPanelTrans_Master_readDataFrom_Slave(i, rData, &rDataLen);
-				//HAL_SPI_MspDeInit(&hspi1);
-				LOG("current board %d status : ..%d..\r\n", i, bpstatus);
+				HAL_NVIC_DisableIRQ(&hspi1);
+				Addto_osPrintf("current board %d status : ..%d..\r\n", i, bpstatus);
 				PowerBoard_Trig[i] = 0;		//PowerBoardH[i].isBoard_Rx_En = 0;
 				if (bpstatus == bpTrans_OK)
 				{
@@ -249,7 +249,7 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 			ModbusH.spiRx_uartTx_u8regs_size = 0;
 		}
 		osMutexRelease(mutex);
-		osDelay(10);
+		osDelay(5);
 	}
 }
 
