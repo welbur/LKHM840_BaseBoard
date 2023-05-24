@@ -5,25 +5,40 @@
   * @brief          : Header for main.c file.
   *                   This file contains the common defines of the application.
   ******************************************************************************
-  * @attention      : 2023-04-11  V0.0.4
+  * @attention      : LKHM840 BaseBoard
+  *                   2023-05-20  V0.0.1
   *
-  *       1、usart1用于打印测试信息
+  *       1、usart1用于接收PN板的modbus数据
   *           PA9     ------> USART1_TX
   *           PA10    ------> USART1_RX
-  *           BaudRate = 115200
-  *           
-  *       2、usart2用做modbus从站使用，slaveID默认为0x01
-  *           PA2     ------> USART1_TX
-  *           PA3     ------> USART1_RX
   *           BaudRate = 921600
-  *           采用dma方式
   *           
-  *       3、spi1设置为主模式，用于跟slave板通讯
-  *           PA4     ------> SPI1_NSS
+  *       2、usart2用于扩展多个LKHM840模块，将usart1数据直接透传给下一个LKHM840
+  *           PA2     ------> USART2_TX
+  *           PA3     ------> USART2_RX
+  *           BaudRate = 921600
+  *     
+  *       3、usart3用于打印测试信息
+  *           PC10    ------> USART3_TX
+  *           PC11    ------> USART3_RX
+  *           BaudRate = 921600
+  *           
+  *       4、spi1设置为主模式，用于跟slave板通讯
   *           PA5     ------> SPI1_SCK
   *           PA6     ------> SPI1_MISO
   *           PA7     ------> SPI1_MOSI
-  * 
+  *       5、CS信号、INT信号、WorkLed
+  *           PB4     ------> CS1       BaseBoard -->  PowerBoard
+  *           PB5     ------> CS2       BaseBoard -->  PowerBoard
+  *           PB6     ------> CS3       BaseBoard -->  PowerBoard
+  *           PB7     ------> CS4       BaseBoard -->  PowerBoard
+  *           
+  *           PC6     ------> INT1      PowerBoard --> BaseBoard
+  *           PC5     ------> INT2      PowerBoard --> BaseBoard
+  *           PC4     ------> INT3      PowerBoard --> BaseBoard
+  *           PC3     ------> INT4      PowerBoard --> BaseBoard
+  *           
+  *           PC0     ------> WorkLed
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -48,7 +63,7 @@ extern "C" {
 #include "MSP_GPIO.h"
 #include "MSP_USART.h"
 #include "MSP_SPI.h"
-#include "BackPanelTrans_C.h"
+#include "BackPanelTrans.h"
 //#include "stdio.h"
 #include "PinConfig.h"
 
@@ -93,8 +108,8 @@ typedef __I uint8_t vuc8;
 
 
 
-#define RxFlag                          1
-#define TxFlag                          2
+//#define RxFlag                          1
+//#define TxFlag                          2
 
 //复制一个数组到另一个数组
 #define COPY_ARRAY(dest, src, len) memcpy(dest, src, (len) * sizeof((src)[0]))

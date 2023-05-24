@@ -5,6 +5,8 @@
  extern "C" {
 #endif
 
+//baseboard
+
 #include "stm32f4xx_hal.h"
 //#include "main.h"
 #include "PinConfig.h"

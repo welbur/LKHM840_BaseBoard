@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2021 Boring_TECH*********************
-  * @file       BSP_spi.c/h
+  * @file       BSP_spi.c/h		baseboard
   * @brief      ��HAL��SPI�������ж��η�װ������Ӧ���������е���
   * @note
   * @history
@@ -15,11 +15,6 @@
   ****************************(C) COPYRIGHT 2021 Boring_TECH*********************
   */
 #include "MSP_SPI.h"
-
-/* transfer state */
-__IO uint32_t sTxRxFlag;
-// uint32_t wTransferState = TRANSFER_WAIT;
-// #include "spi.h"
 
 
 SPI_HandleTypeDef hspi1;
@@ -83,7 +78,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle)
 		GPIO_InitStruct.Pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;				// GPIO_PULLUP;     //GPIO_NOPULL
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM; // GPIO_SPEED_FREQ_LOW;	//GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;		//GPIO_SPEED_FREQ_MEDIUM; // GPIO_SPEED_FREQ_LOW;	//GPIO_SPEED_FREQ_VERY_HIGH;
 		GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
 		HAL_GPIO_Init(SPI1_GPIO_PORT, &GPIO_InitStruct);
 		/* NVIC for SPI */
@@ -117,7 +112,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 	if (spiHandle->Instance == SPI1)
 	{
 		/* Peripheral clock disable */
-		//__HAL_RCC_SPI1_CLK_DISABLE();
+		__HAL_RCC_SPI1_CLK_DISABLE();
 		__HAL_RCC_SPI1_FORCE_RESET();
 		__HAL_RCC_SPI1_RELEASE_RESET();
 		/**SPI1 GPIO Configuration
@@ -130,7 +125,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 	else if (spiHandle->Instance == SPI2)
 	{
 		/* Peripheral clock disable */
-		//__HAL_RCC_SPI2_CLK_DISABLE();
+		__HAL_RCC_SPI2_CLK_DISABLE();
 		__HAL_RCC_SPI2_FORCE_RESET();
 		__HAL_RCC_SPI2_RELEASE_RESET();
 		/**SPI2 GPIO Configuration
@@ -145,7 +140,82 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle)
 
 void SPITransfer_GPIO_Init(void)
 {
-	/*******************************************       先初始化需要用到的GPIO引脚      *************************************/
+#ifdef LKHM840PowerB
+	/*******************************************      用于slave板 先初始化需要用到的GPIO引脚      *************************************/
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	/*Configure GPIO pins : PB0 PB1 PB2 PB3 PB4 PB5 PB6 PB7
+	 *        PB4~PB7定义为spi1 cs的引脚
+	 */
+	CHIP_SPI1_CS1_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS1_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS2_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS2;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS2_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS3_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS3;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS3_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS4_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS4;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS4_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS5_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS5;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS5_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS6_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS6;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS6_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS7_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS7;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS7_Port, &GPIO_InitStruct);
+	CHIP_SPI1_CS8_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CHIP_SPI1_CS8;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(CHIP_SPI1_CS8_Port, &GPIO_InitStruct);
+	/*******************************************       将所有cs引脚都默认设为高电平     *************************************/
+	HAL_GPIO_WritePin(CHIP_SPI1_CS1_Port, CHIP_SPI1_CS1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS2_Port, CHIP_SPI1_CS2, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS3_Port, CHIP_SPI1_CS3, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS4_Port, CHIP_SPI1_CS4, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS5_Port, CHIP_SPI1_CS5, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS6_Port, CHIP_SPI1_CS6, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS7_Port, CHIP_SPI1_CS7, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CHIP_SPI1_CS8_Port, CHIP_SPI1_CS8, GPIO_PIN_SET);
+
+#if 0
+  	/*Configure spi2 cs pins : PB12 */
+  	SPI2_CS_CLK_ENABLE();
+  	GPIO_InitStruct.Pin = SPI2_CS;                                   
+  	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  	GPIO_InitStruct.Pull = GPIO_PULLUP; //GPIO_NOPULL;
+  	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  	HAL_GPIO_Init(SPI2_CS_Port, &GPIO_InitStruct);
+#endif
+
+#else
+	/*******************************************      用于master板 先初始化需要用到的GPIO引脚      *************************************/
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	/*Configure GPIO pins : PB4 PB5 PB6 PB7
 	 *        PB4~PB7定义为spi1 cs的引脚
@@ -154,13 +224,13 @@ void SPITransfer_GPIO_Init(void)
 	GPIO_InitStruct.Pin = PowerB_SPI1_CS1;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 	HAL_GPIO_Init(PowerB_SPI1_CS1_Port, &GPIO_InitStruct);
 	PowerB_SPI1_CS2_CLK_ENABLE();
 	GPIO_InitStruct.Pin = PowerB_SPI1_CS2;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 	HAL_GPIO_Init(PowerB_SPI1_CS2_Port, &GPIO_InitStruct);
 	PowerB_SPI1_CS3_CLK_ENABLE();
 	GPIO_InitStruct.Pin = PowerB_SPI1_CS3;
@@ -179,6 +249,8 @@ void SPITransfer_GPIO_Init(void)
 	HAL_GPIO_WritePin(PowerB_SPI1_CS2_Port, PowerB_SPI1_CS2, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(PowerB_SPI1_CS3_Port, PowerB_SPI1_CS3, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(PowerB_SPI1_CS4_Port, PowerB_SPI1_CS4, GPIO_PIN_SET);
+#endif
+
 }
 
 
@@ -222,11 +294,12 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
 {
 	for (uint16_t i = 0; i < rxLen; i++)
 	{
-		if (HAL_SPI_Receive(spiHandle, rxData, 1, 10) != HAL_OK)
+		if (HAL_SPI_Receive_IT(&hspi1, rxData, 1) != HAL_OK)
 		{
 			// LOGE("spi MSP_SPI_read timeout....\r\n");
 			return 0;
 		}
+		LOG("%02X ", *rxData);
 		while (HAL_SPI_GetState(spiHandle) != HAL_SPI_STATE_READY)
 		{
 		}
@@ -235,6 +308,18 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
 }
 #endif
 
+#ifdef LKHM840PowerB
+/**
+ * @brief  MSP_SPI2_CS_STATUS
+ * @param  none
+ * @note   返回IO引脚的高低电平数值.
+ * @retval 高电平 返回 1； 低电平 返回 0
+ */
+uint8_t MSP_SPI2_CS_STATUS()
+{
+	return HAL_GPIO_ReadPin(SPI2_CS_Port, SPI2_CS);
+}
+#endif
 
 /**
  * @brief  TxRx Transfer completed callback.
@@ -245,13 +330,13 @@ uint8_t MSP_SPI_read(SPI_HandleTypeDef *spiHandle, uint8_t *rxData, uint16_t rxL
  */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	LOG("spi rx callback\r\n");
-	sTxRxFlag = SpiRx_COMPLETE;
+	//LOG("spi rx callback\r\n");
+	//sTxRxFlag = SpiRx_COMPLETE;
 }
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	// LOGI("spi tx callback\r\n");
-	sTxRxFlag = SpiTx_COMPLETE;
+	//LOGI("spi tx callback\r\n");
+	//sTxRxFlag = SpiTx_COMPLETE;
 }
 
 /**
@@ -264,7 +349,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
 	LOG("spi error callback\r\n");
-	sTxRxFlag = SpiTxRx_ERROR;
+	//sTxRxFlag = SpiTxRx_ERROR;
 	HAL_SPI_MspDeInit(hspi);
 	HAL_SPI_MspInit(hspi);
 }

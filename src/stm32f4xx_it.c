@@ -95,7 +95,7 @@ void EXTI3_IRQHandler(void)
 #elif defined(DEVBoardYD)
   HAL_GPIO_EXTI_IRQHandler(KEY_Pin);
 #else
-  HAL_GPIO_EXTI_IRQHandler(PowerB_INT4);
+  HAL_GPIO_EXTI_IRQHandler(PowerBtoBaseB_INT4);
 #endif
 }
 /**
@@ -105,7 +105,7 @@ void EXTI3_IRQHandler(void)
   */
 void EXTI4_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(PowerB_INT3);
+  HAL_GPIO_EXTI_IRQHandler(PowerBtoBaseB_INT3);
 }
 
 /**
@@ -113,8 +113,8 @@ void EXTI4_IRQHandler(void)
   */
 void EXTI9_5_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(PowerB_INT2);
-  HAL_GPIO_EXTI_IRQHandler(PowerB_INT1);
+  HAL_GPIO_EXTI_IRQHandler(PowerBtoBaseB_INT2);
+  HAL_GPIO_EXTI_IRQHandler(PowerBtoBaseB_INT1);
 }
 /**
   * @brief This function handles EXTI line[15:10] interrupts.

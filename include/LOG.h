@@ -1,6 +1,6 @@
 /*
- * Author: Jayant Tang
- * Email: jayant97@foxmail.com
+ * BaseBoard
+ * 
  */
 
 #ifndef _LOG_H_
@@ -17,7 +17,7 @@
 
 #define MSG_LENGTH 1024
 
-extern char LOG_MSG[MSG_LENGTH];
+char LOG_MSG[MSG_LENGTH];
 
 #if defined(UartPrintf)
 #ifdef __GNUC__

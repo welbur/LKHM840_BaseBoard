@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2021 Boring_TECH*********************
-  * @file       BSP_GPIO.c/h
+  * @file       BSP_GPIO.c/h baseboard
   * @brief      GPIO的二次封装
   * @note
   * @history
@@ -67,12 +67,31 @@ void MX_GPIO_Init(void)
 	HAL_GPIO_Init(WorkLed_GPIO_Port, &GPIO_InitStruct);
 
 	HAL_GPIO_WritePin(WorkLed_GPIO_Port, WorkLed_Pin, GPIO_PIN_RESET);
-#if 0
-  GPIO_InitStruct.Pin = GPIO_PIN_10;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+#ifdef LKHM840PowerB
+	/*Configure GPIO pins :设置powerboard to baseboard int引脚 */
+	GPIO_InitStruct.Pin = PB2BB_INT_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(PB2BB_INT_GPIO_Port, &GPIO_InitStruct);
+
+	HAL_GPIO_WritePin(PB2BB_INT_GPIO_Port, PB2BB_INT_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin : 设置boardID的配置引脚 pc3 pc4 */
+	GPIO_InitStruct.Pin = bID0_Pin | bID1_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT; // GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(bID_GPIO_Port, &GPIO_InitStruct);
+
+  	/*Configure spi2 cs pins : PB12 */
+  	SPI2_CS_CLK_ENABLE();
+  	GPIO_InitStruct.Pin = SPI2_CS;                                   
+  	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  	GPIO_InitStruct.Pull = GPIO_PULLUP; //GPIO_NOPULL;
+  	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  	HAL_GPIO_Init(SPI2_CS_Port, &GPIO_InitStruct);
 #endif
 }
 
@@ -97,42 +116,44 @@ void EXTILine_Config(void)
 	HAL_NVIC_EnableIRQ(KEY_Pin_EXTI_IRQn);
 #endif
 
+#ifdef LKHM840BaseB
 	/*Configure GPIO pins : PC6 PC5 PC4 PC3
 	 *  PC6～PC3定义为Slave板到Master板的中断信号
 	 */
 	/********************************     power board 1 int     *********************************/
-	PowerB_INT1_CLK_ENABLE();							
-	GPIO_InitStruct.Pin = PowerB_INT1;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING; // GPIO_MODE_IT_RISING_FALLING; //GPIO_MODE_IT_FALLING;
+	PowerBtoBaseB_INT1_CLK_ENABLE();							
+	GPIO_InitStruct.Pin = PowerBtoBaseB_INT1;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING; // GPIO_MODE_IT_RISING_FALLING; //GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(PowerB_INT1_PORT, &GPIO_InitStruct);
-	HAL_NVIC_SetPriority(PowerB_INT1_EXTI_IRQn, GPIO_EXTI_PP, PowerB_INT1_EXTI_SP);	
-	HAL_NVIC_EnableIRQ(PowerB_INT1_EXTI_IRQn);
+	HAL_GPIO_Init(PowerBtoBaseB_INT1_PORT, &GPIO_InitStruct);
+	HAL_NVIC_SetPriority(PowerBtoBaseB_INT1_EXTI_IRQn, GPIO_EXTI_PP, PowerBtoBaseB_INT1_EXTI_SP);	
+	HAL_NVIC_EnableIRQ(PowerBtoBaseB_INT1_EXTI_IRQn);
 	/********************************     power board 2 int     *********************************/
-	PowerB_INT2_CLK_ENABLE();							
-	GPIO_InitStruct.Pin = PowerB_INT2;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+	PowerBtoBaseB_INT2_CLK_ENABLE();							
+	GPIO_InitStruct.Pin = PowerBtoBaseB_INT2;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(PowerB_INT2_PORT, &GPIO_InitStruct);
-	HAL_NVIC_SetPriority(PowerB_INT2_EXTI_IRQn, GPIO_EXTI_PP, PowerB_INT2_EXTI_SP);
-	HAL_NVIC_EnableIRQ(PowerB_INT2_EXTI_IRQn);
+	HAL_GPIO_Init(PowerBtoBaseB_INT2_PORT, &GPIO_InitStruct);
+	HAL_NVIC_SetPriority(PowerBtoBaseB_INT2_EXTI_IRQn, GPIO_EXTI_PP, PowerBtoBaseB_INT2_EXTI_SP);
+	HAL_NVIC_EnableIRQ(PowerBtoBaseB_INT2_EXTI_IRQn);
 	/********************************     power board 3 int     *********************************/
-	PowerB_INT3_CLK_ENABLE();							
-	GPIO_InitStruct.Pin = PowerB_INT3;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+	PowerBtoBaseB_INT3_CLK_ENABLE();							
+	GPIO_InitStruct.Pin = PowerBtoBaseB_INT3;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(PowerB_INT3_PORT, &GPIO_InitStruct);
-	HAL_NVIC_SetPriority(PowerB_INT3_EXTI_IRQn, GPIO_EXTI_PP, PowerB_INT3_EXTI_SP);
-	HAL_NVIC_EnableIRQ(PowerB_INT3_EXTI_IRQn);
+	HAL_GPIO_Init(PowerBtoBaseB_INT3_PORT, &GPIO_InitStruct);
+	HAL_NVIC_SetPriority(PowerBtoBaseB_INT3_EXTI_IRQn, GPIO_EXTI_PP, PowerBtoBaseB_INT3_EXTI_SP);
+	HAL_NVIC_EnableIRQ(PowerBtoBaseB_INT3_EXTI_IRQn);
 	/********************************     power board 4 int     *********************************/
 #ifndef DEVBoardYD
-	PowerB_INT4_CLK_ENABLE();						
-	GPIO_InitStruct.Pin = PowerB_INT4;
+	PowerBtoBaseB_INT4_CLK_ENABLE();						
+	GPIO_InitStruct.Pin = PowerBtoBaseB_INT4;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(PowerB_INT4_PORT, &GPIO_InitStruct);
-	HAL_NVIC_SetPriority(PowerB_INT4_EXTI_IRQn, GPIO_EXTI_PP, PowerB_INT4_EXTI_SP);
-	HAL_NVIC_EnableIRQ(PowerB_INT4_EXTI_IRQn);
+	HAL_GPIO_Init(PowerBtoBaseB_INT4_PORT, &GPIO_InitStruct);
+	HAL_NVIC_SetPriority(PowerBtoBaseB_INT4_EXTI_IRQn, GPIO_EXTI_PP, PowerBtoBaseB_INT4_EXTI_SP);
+	HAL_NVIC_EnableIRQ(PowerBtoBaseB_INT4_EXTI_IRQn);
+#endif
 #endif
 }
 

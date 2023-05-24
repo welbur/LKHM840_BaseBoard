@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2021 Boring_TECH*********************
-  * @file       BSP_USART.c/h
+  * @file       BSP_USART.c/h     baseboard
   * @brief      将HAL库串口函数进行二次封装，并在串口中断中接收数据
   * @note      	
   * @history
@@ -24,29 +24,6 @@ DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
-#if 0
-uint8_t rx1_buf;
-/**
-	* @brief          串口接收中断回调函数
-  * @param[in]     	huart 串口序号
-  * @retval         none
-  */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if(huart->Instance==USART1)
-	{
-		HAL_UART_Receive_IT(&huart1, &rx1_buf, 1);	
-		HAL_UART_Transmit(&huart1, &rx1_buf, 1, 1000);
-	}
-}
-
-static void UART_DMATransmitCplt(DMA_HandleTypeDef *hdma)
-{
-
-}
-#endif
-
-
 
 /* USART1 init function */
 void MX_USART1_UART_Init(void)
@@ -60,11 +37,9 @@ void MX_USART1_UART_Init(void)
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 
-  //__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
-  //__HAL_UART_ENABLE_IT(&huart1, UART_IT_TC);
   if (HAL_UART_Init(&huart1) != HAL_OK)   //初始化串口的引脚定义，在HAL_UART_MspInit函数里面
   {
-    //LOGE("uart init error");
+    LOGE("uart1 init error");
     //Error_Handler();
   }
 }
@@ -82,7 +57,7 @@ void MX_USART2_UART_Init(void)
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart2) != HAL_OK)   //初始化串口的引脚定义，在HAL_UART_MspInit函数里面
   {
-    //LOGE("uart init error");
+    LOGE("uart2 init error");
     //Error_Handler();
   }
 }
@@ -100,7 +75,7 @@ void MX_USART3_UART_Init(void)
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)   //初始化串口的引脚定义，在HAL_UART_MspInit函数里面
   {
-    //LOGE("uart init error");
+    LOGE("uart3 init error");
     //Error_Handler();
   }
 }

@@ -22,7 +22,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "BackPanelTrans_C.h"
+#include "BackPanelTrans.h"
 #include "Modbus.h"
 #include "LOG.h"
 
@@ -102,7 +102,7 @@ void osPrintLOG(void *argument);
 void Start_ReadPowerBoardData_TransTask(void *argument);
 void Start_MainBoard2PowerBoard_TransTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-void SPITrans_Init(void);
+void BackPanelTrans_Init(void);
 
 /**
  * @brief  FreeRTOS initialization
@@ -117,10 +117,16 @@ void MX_FREERTOS_Init(void)
 	osPrintLOG_TaskHandle = osThreadNew(osPrintLOG, NULL, &osPrintLOGTask_attributes);
 }
 
-void SPITRANS_Init(void)
+void BackPanelTrans_Init(void)
 {
+	BackPanelTransHandler_t BackPanelTransHandler;
+	BackPanelTransHandler.printDebug 		= 1;
+	BackPanelTransHandler.readACKTimeOut 	= 5;
+	BackPanelTransHandler.readDataTimeOut 	= 50;
+	BackPanelTransHandler.waitCSTimeOut 	= 5;
 	PacketInit();
 	CRC_Init(0x9B);
+	BPTrans_Init(&BackPanelTransHandler);
 #if 1
 	ReadPowerBoardData_TransTaskHandle = osThreadNew(Start_ReadPowerBoardData_TransTask, NULL, &ReadPowerBoardData_TransTask_attributes);
 	MainBoard2PowerBoard_TransTaskHandle = osThreadNew(Start_MainBoard2PowerBoard_TransTask, NULL, &MainBoard2PowerBoard_TransTask_attributes);
@@ -184,20 +190,20 @@ void osPrintLOG(void *argument)
  */
 void Start_ReadPowerBoardData_TransTask(void *argument)
 {
-	SPITransHandler_t SPITransHandler;
-	SPITransHandler.spiPort = &hspi1;
-	SPITransHandler. SPIMODE = SPIMasterMode;
-	SPITransHandler.readACKTimeOut = 10;
-	SPITransHandler.readDataTimeOut = 100;
-	SPITransHandler.SPITransDir = Master_readDataFrom_Slave;
-	SPITransHandler.readDataFromPowerBoard_u8regs = PowerBoard_DATA;
-	SPITransHandler.readDataFromPowerBoard_u8regs_size = sizeof(PowerBoard_DATA) / sizeof(PowerBoard_DATA[0]);
+//	SPITransHandler_t SPITransHandler;
+//	SPITransHandler.spiPort = &hspi1;
+//	SPITransHandler. SPIMODE = SPIMasterMode;
+//	SPITransHandler.readACKTimeOut = 10;
+//	SPITransHandler.readDataTimeOut = 100;
+//	SPITransHandler.SPITransDir = Master_readDataFrom_Slave;
+//	SPITransHandler.readDataFromPowerBoard_u8regs = PowerBoard_DATA;
+//	SPITransHandler.readDataFromPowerBoard_u8regs_size = sizeof(PowerBoard_DATA) / sizeof(PowerBoard_DATA[0]);
 
 	/* Infinite loop */
 	for (;;)
 	{
 		osMutexAcquire(mutex, osWaitForever);	//打印调试信息用
-		SPITransHandler.spiTransState = SpiTrans_Wait;
+		//SPITransHandler.spiTransState = SpiTrans_Wait;
 		uint8_t re_arr_size = MOD_PREAMBLE_SIZE; // 暂用数组前面的4个元素，作为包头使用
 		uint8_t re_arr[128];
 
@@ -206,16 +212,20 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 		{
 			if (PowerBoard_Trig[i])
 			{
-				Addto_osPrintf("start time : %ld\r\n", xTaskGetTickCount());
-				SPITransHandler.currentPBoardID = i;	
-				SPITransfer_Master_Spi1_Transfer(&SPITransHandler);
-				Addto_osPrintf("current board %d status : ..%d..\r\n", SPITransHandler.currentPBoardID, SPITransHandler.spiTransState);
+				uint16_t rDataLen;
+				uint8_t *rData = NULL;
+				LOG("start time : %ld\r\n", xTaskGetTickCount());
+				BackPanelTransStatus_TypeDef bpstatus = bpTrans_Wait;
+				//HAL_SPI_MspInit(&hspi1);
+				bpstatus = BackPanelTrans_Master_readDataFrom_Slave(i, rData, &rDataLen);
+				//HAL_SPI_MspDeInit(&hspi1);
+				LOG("current board %d status : ..%d..\r\n", i, bpstatus);
 				PowerBoard_Trig[i] = 0;		//PowerBoardH[i].isBoard_Rx_En = 0;
-				if (SPITransHandler.spiTransState == SpiTrans_End)
+				if (bpstatus == bpTrans_OK)
 				{
 					/*从spi通道读到数据后，把slave板从1-8所有的数据都读出来后，合并在一起，然后再发给modbus主机(pn板)*/
-					COPY_ARRAY(re_arr + re_arr_size, SPITransHandler.readDataFromPowerBoard_u8regs, SPITransHandler.readDataFromPowerBoard_u8regs_size);
-					re_arr_size += SPITransHandler.readDataFromPowerBoard_u8regs_size;
+					COPY_ARRAY(re_arr + re_arr_size, &rData, rDataLen);
+					re_arr_size += rDataLen;
 				}
 			}
 		}
@@ -256,12 +266,12 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 #if 1
 void Start_MainBoard2PowerBoard_TransTask(void *argument)
 {
-	SPITransHandler_t SPITransHandler;
-	SPITransHandler.spiPort = &hspi1;
-	SPITransHandler. SPIMODE = SPIMasterMode;
-	SPITransHandler.readACKTimeOut = 50;
-	SPITransHandler.readDataTimeOut = 100;
-	SPITransHandler.SPITransDir = Master_writeDataTo_Slave;
+//	SPITransHandler_t SPITransHandler;
+//	SPITransHandler.spiPort = &hspi1;
+//	SPITransHandler. SPIMODE = SPIMasterMode;
+//	SPITransHandler.readACKTimeOut = 50;
+//	SPITransHandler.readDataTimeOut = 100;
+//	SPITransHandler.SPITransDir = Master_writeDataTo_Slave;
 
 	/* Infinite loop */
 	for (;;)
@@ -273,23 +283,22 @@ void Start_MainBoard2PowerBoard_TransTask(void *argument)
 			{
 				Addto_osPrintf("start Start_MainBoard2PowerBoard_TransTask : %ld\r\n", xTaskGetTickCount());
 				ModbusH.FCStatus[MB_FC_WRITE_MULTIPLE_REGISTERS] = 0;
-				uint8_t PLCCmdBuffer[50];
+				
 				for (uint16_t i = 0 ; i < ModbusH.current_u16regs_num ; )
 				{
-					SPITransHandler.spiTransState = SpiTrans_Wait;
 					/* 解析出modbus数据，然后传给各个powerboard */
-					SPITransHandler.currentPBoardID 		= highByte(ModbusDATA[ModbData_PowerBoard_Addr+i])-1;
-					if ((SPITransHandler.currentPBoardID > PowerBoardNum) || (SPITransHandler.currentPBoardID < 1)) break;
-					SPITransHandler.PLCCmd_u8regs_size 		= lowByte(ModbusDATA[ModbData_PowerBoard_Addr+i]);
+					BoardID_TypeDef boardID 		= highByte(ModbusDATA[ModbData_PowerBoard_Addr+i])-1;
+					if ((boardID > PowerBoardNum) || (boardID < 1)) break;
+					uint16_t PLCCmdBufferLen 				= lowByte(ModbusDATA[ModbData_PowerBoard_Addr+i]);
+					uint8_t PLCCmdBuffer[PLCCmdBufferLen];
 					i++;
-					for (int j = 0; j < (SPITransHandler.PLCCmd_u8regs_size / 2); j++)
+					for (int j = 0; j < (PLCCmdBufferLen / 2); j++)
 					{
 						PLCCmdBuffer[j*2] 		= highByte(ModbusDATA[ModbData_PowerBoard_Addr+i]);
 						PLCCmdBuffer[j*2+1] 	= lowByte(ModbusDATA[ModbData_PowerBoard_Addr+i]);
 						i++;
 					}
-					SPITransHandler.PLCCmd_u8regs 			= PLCCmdBuffer;
-					SPITransfer_Master_Spi1_Transfer(&SPITransHandler);
+					BackPanelTrans_Master_writeDataTo_Slave(boardID, PLCCmdBuffer, PLCCmdBufferLen);
 					//osDelay(10);
 				}
 			}

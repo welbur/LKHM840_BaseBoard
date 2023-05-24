@@ -5,6 +5,8 @@
  extern "C" {
 #endif
 
+//baseboard
+
 #include "stm32f4xx_hal.h"
 #include "PinConfig.h"
 //#include "SPITransfer_C.h"
@@ -23,7 +25,9 @@
 #define WorkLed(n)			(n?HAL_GPIO_WritePin(WorkLed_GPIO_Port,WorkLed_Pin,GPIO_PIN_SET):HAL_GPIO_WritePin(WorkLed_GPIO_Port,WorkLed_Pin,GPIO_PIN_RESET))
 #define WorkLed_TogglePin     HAL_GPIO_TogglePin(WorkLed_GPIO_Port,WorkLed_Pin)	//WorkLed 闪烁 
 
-
+#ifdef LKHM840PowerB
+#define PB2BB_INT_ToMasterB(n)			(n?HAL_GPIO_WritePin(PB2BB_INT_GPIO_Port,PB2BB_INT_Pin,GPIO_PIN_SET):HAL_GPIO_WritePin(PB2BB_INT_GPIO_Port,PB2BB_INT_Pin,GPIO_PIN_RESET))
+#endif
 
 void MX_GPIO_Init(void);
 

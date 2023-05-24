@@ -5,6 +5,8 @@
  extern "C" {
 #endif
 
+//baseboard
+
 #include "stm32f4xx_hal.h"
 //#include "stdio.h"
 //#include "SPITransfer_C.h"
@@ -18,17 +20,7 @@
 #define SET_SPIMODE_MASTER				1
 #define SET_SPIMODE_SLAVE				0
 
-/* USER CODE END Private defines */
-#if 0
-typedef enum 
-{
-  PowerBoard_1    = 0,     //= 0b00000001,
-  PowerBoard_2    ,     //= 0b00000010,	//2,
-  PowerBoard_3    ,     //= 0b00000100,
-  PowerBoard_4    ,     //= 0b00001000,
-}BoardID_TypeDef;
-#endif
-
+#ifdef LKHM840BaseB
 #define SPI1_CS_ENABLE(__BoardID__)       do{if((__BoardID__) == PowerBoard_1)    HAL_GPIO_WritePin(PowerB_SPI1_CS1_Port,PowerB_SPI1_CS1,GPIO_PIN_RESET); else \
                                         	if((__BoardID__) == PowerBoard_2)    HAL_GPIO_WritePin(PowerB_SPI1_CS2_Port,PowerB_SPI1_CS2,GPIO_PIN_RESET); else \
                                            	if((__BoardID__) == PowerBoard_3)    HAL_GPIO_WritePin(PowerB_SPI1_CS3_Port,PowerB_SPI1_CS3,GPIO_PIN_RESET); else \
@@ -39,15 +31,15 @@ typedef enum
                                            	if((__BoardID__) == PowerBoard_3)    HAL_GPIO_WritePin(PowerB_SPI1_CS3_Port,PowerB_SPI1_CS3,GPIO_PIN_SET); else \
                                            	if((__BoardID__) == PowerBoard_4)    HAL_GPIO_WritePin(PowerB_SPI1_CS4_Port,PowerB_SPI1_CS4,GPIO_PIN_SET); \
                                         }while(0)
+#endif
 
-
-
+/*
 enum {
 	SpiTxRx_WAIT,
 	SpiTx_COMPLETE,
 	SpiRx_COMPLETE,
 	SpiTxRx_ERROR
-};
+};*/
 
 
 extern SPI_HandleTypeDef hspi1;
@@ -63,6 +55,9 @@ void SPITransfer_GPIO_Init(void);
 
 uint8_t MSP_SPI_write(SPI_HandleTypeDef* spiHandle, uint8_t *txData, uint16_t txLen);
 uint8_t MSP_SPI_read(SPI_HandleTypeDef* spiHandle, uint8_t *rxData, uint16_t rxLen);
+#ifdef LKHM840PowerB
+uint8_t MSP_SPI2_CS_STATUS();
+#endif
 
 uint8_t SPI1_WriteData(uint8_t *data,uint16_t size);
 uint8_t SPI2_ReadWriteByte(uint8_t TxData);

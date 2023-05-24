@@ -51,50 +51,85 @@
 
 /**
  * @brief 定义第一块Power Board的触发信号 
- * @brief Power Board 1 --> Master Board
+ * @brief Power Board 1 --> Base Board
  */
-#define PowerB_INT1                         GPIO_PIN_6
-#define PowerB_INT1_PORT                    GPIOC
-#define PowerB_INT1_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
-#define PowerB_INT1_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
-#define PowerB_INT1_EXTI_IRQn               EXTI9_5_IRQn         
-#define PowerB_INT1_EXTI_SP                 1    
+#define PowerBtoBaseB_INT1                         GPIO_PIN_6
+#define PowerBtoBaseB_INT1_PORT                    GPIOC
+#define PowerBtoBaseB_INT1_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
+#define PowerBtoBaseB_INT1_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
+#define PowerBtoBaseB_INT1_EXTI_IRQn               EXTI9_5_IRQn         
+#define PowerBtoBaseB_INT1_EXTI_SP                 1    
 /**
  * @brief 定义第二块Power Board的触发信号 
- * @brief Power Board 2 --> Master Board
+ * @brief Power Board 2 --> Base Board
  */
-#define PowerB_INT2                         GPIO_PIN_5
-#define PowerB_INT2_PORT                    GPIOC
-#define PowerB_INT2_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
-#define PowerB_INT2_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
-#define PowerB_INT2_EXTI_IRQn               EXTI9_5_IRQn          
-#define PowerB_INT2_EXTI_SP                 2      
+#define PowerBtoBaseB_INT2                         GPIO_PIN_5
+#define PowerBtoBaseB_INT2_PORT                    GPIOC
+#define PowerBtoBaseB_INT2_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
+#define PowerBtoBaseB_INT2_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
+#define PowerBtoBaseB_INT2_EXTI_IRQn               EXTI9_5_IRQn          
+#define PowerBtoBaseB_INT2_EXTI_SP                 2      
 /**
  * @brief 定义第三块Power Board的触发信号 
- * @brief Power Board 3 --> Master Board
+ * @brief Power Board 3 --> Base Board
  */
-#define PowerB_INT3                         GPIO_PIN_4
-#define PowerB_INT3_PORT                    GPIOC
-#define PowerB_INT3_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
-#define PowerB_INT3_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
-#define PowerB_INT3_EXTI_IRQn               EXTI4_IRQn         
-#define PowerB_INT3_EXTI_SP                 3        
+#define PowerBtoBaseB_INT3                         GPIO_PIN_4
+#define PowerBtoBaseB_INT3_PORT                    GPIOC
+#define PowerBtoBaseB_INT3_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
+#define PowerBtoBaseB_INT3_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
+#define PowerBtoBaseB_INT3_EXTI_IRQn               EXTI4_IRQn         
+#define PowerBtoBaseB_INT3_EXTI_SP                 3        
 /**
  * @brief 定义第四块Power Board的触发信号 
- * @brief Power Board 4 --> Master Board
+ * @brief Power Board 4 --> Base Board
  */
-#define PowerB_INT4                         GPIO_PIN_3
-#define PowerB_INT4_PORT                    GPIOC
-#define PowerB_INT4_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
-#define PowerB_INT4_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
-#define PowerB_INT4_EXTI_IRQn               EXTI3_IRQn   
-#define PowerB_INT4_EXTI_SP                 4   
+#define PowerBtoBaseB_INT4                         GPIO_PIN_3
+#define PowerBtoBaseB_INT4_PORT                    GPIOC
+#define PowerBtoBaseB_INT4_CLK_ENABLE()            __HAL_RCC_GPIOC_CLK_ENABLE()
+#define PowerBtoBaseB_INT4_CLK_DISABLE()           __HAL_RCC_GPIOC_CLK_DISABLE()
+#define PowerBtoBaseB_INT4_EXTI_IRQn               EXTI3_IRQn   
+#define PowerBtoBaseB_INT4_EXTI_SP                 4   
 
 #define GPIO_EXTI_PP              2       //定义GPIO中断的主优先级
 
+
+/**
+ * @brief 定义 Base 发送给 第一块Power Board的触发信号 
+ * @brief Base Board  --> Power Board 1
+ */
+#define BaseBtoPowerB_OUT1                         GPIO_PIN_8
+#define BaseBtoPowerB_OUT1_PORT                    GPIOB
+#define BaseBtoPowerB_OUT1_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BaseBtoPowerB_OUT1_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE() 
+/**
+ * @brief 定义 Base板 发送给 第二块Power Board的触发信号 
+ * @brief Base Board  --> Power Board 2
+ */
+#define BaseBtoPowerB_OUT2                         GPIO_PIN_9
+#define BaseBtoPowerB_OUT2_PORT                    GPIOB
+#define BaseBtoPowerB_OUT2_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BaseBtoPowerB_OUT2_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
+/**
+ * @brief 定义 Base板 发送给 第三块Power Board的触发信号 
+ * @brief Base Board  --> Power Board 3
+ */
+#define BaseBtoPowerB_OUT3                         GPIO_PIN_10
+#define BaseBtoPowerB_OUT3_PORT                    GPIOB
+#define BaseBtoPowerB_OUT3_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BaseBtoPowerB_OUT3_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()  
+/**
+ * @brief 定义 Base板 发送给 第四块Power Board的触发信号 
+ * @brief Base Board  --> Power Board 4
+ */
+#define BaseBtoPowerB_OUT4                         GPIO_PIN_12
+#define BaseBtoPowerB_OUT4_PORT                    GPIOB
+#define BaseBtoPowerB_OUT4_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BaseBtoPowerB_OUT4_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
+
+
 /**
  * @brief 定义第一块Power Board的片选cs信号 
- * @brief Power Board 1 <-- Master Board
+ * @brief Power Board 1 <-- Base Board
  */
 #define PowerB_SPI1_CS1                         GPIO_PIN_4
 #define PowerB_SPI1_CS1_Port                    GPIOB
@@ -102,7 +137,7 @@
 #define PowerB_SPI1_CS1_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
 /**
  * @brief 定义第二块Power Board的片选cs信号 
- * @brief Power Board 2 <-- Master Board
+ * @brief Power Board 2 <-- Base Board
  */
 #define PowerB_SPI1_CS2                         GPIO_PIN_5
 #define PowerB_SPI1_CS2_Port                    GPIOB
@@ -110,7 +145,7 @@
 #define PowerB_SPI1_CS2_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
 /**
  * @brief 定义第三块Power Board的片选cs信号 
- * @brief Power Board 3 <-- Master Board
+ * @brief Power Board 3 <-- Base Board
  */
 #define PowerB_SPI1_CS3                         GPIO_PIN_6
 #define PowerB_SPI1_CS3_Port                    GPIOB
@@ -118,7 +153,7 @@
 #define PowerB_SPI1_CS3_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
 /**
  * @brief 定义第四块Power Board的片选cs信号 
- * @brief Power Board 4 <-- Master Board
+ * @brief Power Board 4 <-- Base Board
  */
 #define PowerB_SPI1_CS4                         GPIO_PIN_7
 #define PowerB_SPI1_CS4_Port                    GPIOB

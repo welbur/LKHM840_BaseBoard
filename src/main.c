@@ -40,7 +40,7 @@
 modbusHandler_t ModbusH;
 uint16_t ModbusDATA[ModbusDATASize], ModbusDATA_Cache[ModbusDATASize];
 
-char LOG_MSG[MSG_LENGTH];
+//char LOG_MSG[MSG_LENGTH];
 
 /*Slave Board相关参数*/
 uint8_t PowerBoard_Trig[PowerBoardNum] = {0, 0, 0, 0};
@@ -52,7 +52,7 @@ uint8_t PowerBoard_DATA[255], MasterB2PowerB_Cmd[128];
 
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
-void SPITRANS_Init(void);
+void BackPanelTrans_Init(void);
 //void DI_Board_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /**/
@@ -104,40 +104,11 @@ int main(void)
 	/***********/
 
 	LOG("start Modbud......\r\n");
-#if 0
-	/*Slave板状态 初始化*/
-	PowerB_1_BoardH.BoardID = PowerBoard_1;
-	PowerB_1_BoardH.isBoard_Rx_En = 0;
-	PowerB_1_BoardH.spiRx_uartTx_u8regs = PowerB_1_DATA;
-	PowerB_1_BoardH.spiRx_uartTx_u8regs_size = sizeof(PowerB_1_DATA) / sizeof(PowerB_1_DATA[0]);
-	PowerB_1_BoardH.spiTransState = SpiTrans_Wait;
-	PowerBoardH[PowerBoard_1] = PowerB_1_BoardH;
 
-	PowerB_2_BoardH.BoardID = PowerBoard_2;
-	PowerB_2_BoardH.isBoard_Rx_En = 0;
-	PowerB_2_BoardH.spiRx_uartTx_u8regs = PowerB_2_DATA;
-	PowerB_2_BoardH.spiRx_uartTx_u8regs_size = sizeof(PowerB_2_DATA) / sizeof(PowerB_2_DATA[0]);
-	PowerB_2_BoardH.spiTransState = SpiTrans_Wait;
-	PowerBoardH[PowerBoard_2] = PowerB_2_BoardH;
-
-	PowerB_3_BoardH.BoardID = PowerBoard_3;
-	PowerB_3_BoardH.isBoard_Rx_En = 0;
-	PowerB_3_BoardH.spiRx_uartTx_u8regs = PowerB_3_DATA;
-	PowerB_3_BoardH.spiRx_uartTx_u8regs_size = sizeof(PowerB_3_DATA) / sizeof(PowerB_3_DATA[0]);
-	PowerB_3_BoardH.spiTransState = SpiTrans_Wait;
-	PowerBoardH[PowerBoard_3] = PowerB_3_BoardH;
-
-	PowerB_4_BoardH.BoardID = PowerBoard_4;
-	PowerB_4_BoardH.isBoard_Rx_En = 0;
-	PowerB_4_BoardH.spiRx_uartTx_u8regs = PowerB_4_DATA;
-	PowerB_4_BoardH.spiRx_uartTx_u8regs_size = sizeof(PowerB_4_DATA) / sizeof(PowerB_4_DATA[0]);
-	PowerB_4_BoardH.spiTransState = SpiTrans_Wait;
-	PowerBoardH[PowerBoard_4] = PowerB_4_BoardH;
-#endif
 	/* Infinite loop */
 	osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
 	MX_FREERTOS_Init();
-	SPITRANS_Init();
+	BackPanelTrans_Init();
 	//  DI_Board_Init();
 	/* Start scheduler */
 	LOG("start osKernel\r\n");
@@ -252,18 +223,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		LED_R(ledg_v);
 		break;
 #endif
-	case PowerB_INT1:
+	case PowerBtoBaseB_INT1:
 		PowerBoard_Trig[PowerBoard_1] = 1;	//PowerBoardH[PowerBoard_1].isBoard_Rx_En = 1;
 		//Addto_osPrintf("Power board int 1..\r\n");
 		break;
-	case PowerB_INT2:
+	case PowerBtoBaseB_INT2:
 		PowerBoard_Trig[PowerBoard_2] = 1;	//PowerBoardH[PowerBoard_2].isBoard_Rx_En = 1;
 		break;
-	case PowerB_INT3:
+	case PowerBtoBaseB_INT3:
 		PowerBoard_Trig[PowerBoard_3] = 1;	//PowerBoardH[PowerBoard_3].isBoard_Rx_En = 1;
 		break;
 #ifndef DEVBoardYD
-	case PowerB_INT4:
+	case PowerBtoBaseB_INT4:
 		PowerBoard_Trig[PowerBoard_4] = 1;	//PowerBoardH[PowerBoard_4].isBoard_Rx_En = 1;
 		break;
 #endif
