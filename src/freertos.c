@@ -249,7 +249,7 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 			ModbusH.spiRx_uartTx_u8regs_size = 0;
 		}
 		osMutexRelease(mutex);
-		osDelay(5);
+		osDelay(10);
 	}
 }
 
