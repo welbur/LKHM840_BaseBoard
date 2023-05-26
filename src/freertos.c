@@ -56,7 +56,8 @@
 //SPITransHandler_t SPITransHandler;
 
 osMutexId_t mutex;
-
+//Semaphore for SPI data
+osSemaphoreId_t SPISphrHandle;
 
 uint32_t RPBD_All_Countt = 0;
 uint32_t RPBD_Act_Countt = 0;
@@ -92,6 +93,10 @@ const osThreadAttr_t MainBoard2PowerBoard_TransTask_attributes = {
 	.priority = (osPriority_t)osPriorityBelowNormal, // osPriorityHigh
 };
 
+// Semaphore to access the spi handler
+const osSemaphoreAttr_t SPISphr_attributes = {
+	.name = "SPISphr"}; 
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
@@ -121,9 +126,11 @@ void BackPanelTrans_Init(void)
 {
 	BackPanelTransHandler_t BackPanelTransHandler;
 	BackPanelTransHandler.printDebug 		= 1;
-	BackPanelTransHandler.readACKTimeOut 	= 5;
-	BackPanelTransHandler.readDataTimeOut 	= 50;
-	BackPanelTransHandler.waitCSTimeOut 	= 5;
+	BackPanelTransHandler.spiITTimeOut		= 10;	//
+	BackPanelTransHandler.SYNCTimeOut	 	= 10;
+	BackPanelTransHandler.readACKTimeOut 	= 10;
+	BackPanelTransHandler.readDataTimeOut 	= 100;
+	BackPanelTransHandler.waitCSTimeOut 	= 10;
 	PacketInit();
 	CRC_Init(0x9B);
 	BPTrans_Init(&BackPanelTransHandler);
@@ -190,36 +197,29 @@ void osPrintLOG(void *argument)
  */
 void Start_ReadPowerBoardData_TransTask(void *argument)
 {
-//	SPITransHandler_t SPITransHandler;
-//	SPITransHandler.spiPort = &hspi1;
-//	SPITransHandler. SPIMODE = SPIMasterMode;
-//	SPITransHandler.readACKTimeOut = 10;
-//	SPITransHandler.readDataTimeOut = 100;
-//	SPITransHandler.SPITransDir = Master_readDataFrom_Slave;
-//	SPITransHandler.readDataFromPowerBoard_u8regs = PowerBoard_DATA;
-//	SPITransHandler.readDataFromPowerBoard_u8regs_size = sizeof(PowerBoard_DATA) / sizeof(PowerBoard_DATA[0]);
-
 	/* Infinite loop */
 	for (;;)
 	{
 		osMutexAcquire(mutex, osWaitForever);	//打印调试信息用
-		//SPITransHandler.spiTransState = SpiTrans_Wait;
 		uint8_t re_arr_size = MOD_PREAMBLE_SIZE; // 暂用数组前面的4个元素，作为包头使用
 		uint8_t re_arr[128];
-
+		if(PowerBoard_Trig[0] | PowerBoard_Trig[1] | PowerBoard_Trig[2] | PowerBoard_Trig[3]) 
+			LOG("Start_ReadPowerBoardData_TransTask start time : %ld\r\n", xTaskGetTickCount());
+		//HAL_SPI_MspInit(&hspi1);
 		/*1-------------------------有触发信号后，读取相关slave板的所有数据*/
 		for (int i = 0; i < PowerBoardNum; i++)
 		{
 			if (PowerBoard_Trig[i])
 			{
+				//HAL_SPI_MspInit(&hspi1);
 				uint16_t rDataLen;
 				uint8_t *rData = NULL;
-				Addto_osPrintf("start time : %ld\r\n", xTaskGetTickCount());
+				
 				BackPanelTransStatus_TypeDef bpstatus = bpTrans_Wait;
-				HAL_NVIC_EnableIRQ(&hspi1);
+				//HAL_SPI_MspInit(&hspi1);
 				bpstatus = BackPanelTrans_Master_readDataFrom_Slave(i, rData, &rDataLen);
-				HAL_NVIC_DisableIRQ(&hspi1);
-				Addto_osPrintf("current board %d status : ..%d..\r\n", i, bpstatus);
+				//HAL_SPI_MspDeInit(&hspi1);
+				LOG("current board %d status : ..%d..\r\n", i, bpstatus);
 				PowerBoard_Trig[i] = 0;		//PowerBoardH[i].isBoard_Rx_En = 0;
 				if (bpstatus == bpTrans_OK)
 				{
@@ -227,9 +227,10 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 					COPY_ARRAY(re_arr + re_arr_size, &rData, rDataLen);
 					re_arr_size += rDataLen;
 				}
+				//HAL_SPI_MspDeInit(&hspi1);
 			}
 		}
-		
+		//HAL_SPI_MspDeInit(&hspi1);
 		if (re_arr_size != MOD_PREAMBLE_SIZE)
 		{	
 			/*增加包头*/
@@ -237,10 +238,9 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 			re_arr[2] = re_arr_size - MOD_PREAMBLE_SIZE; // 有效数据的长度
 			re_arr[3] = MB_FC_READ_REGISTERS;			 // 功能指令码
 
-			Addto_osPrintf("rec111 data : ");
-			for (int j = 0; j < re_arr_size; j++)
-				Addto_osPrintf("%02X ", re_arr[j]);	
-			Addto_osPrintf("\r\n.......%d~~~ end time : %ld --------%ld\r\n", re_arr_size, xTaskGetTickCount(), ++RPBD_Act_Countt);
+			LOG("rec111 data : ");
+			for (int j = 0; j < re_arr_size; j++) LOG("%02X ", re_arr[j]);	
+			LOG("\r\n.......%d~~~ end time : %ld --------%ld\r\n", re_arr_size, xTaskGetTickCount(), ++RPBD_Act_Countt);
 
 			/*放到modbus里面去发送数据*/
 			ModbusH.spiRx_uartTx_u8regs = re_arr;
@@ -266,12 +266,6 @@ void Start_ReadPowerBoardData_TransTask(void *argument)
 #if 1
 void Start_MainBoard2PowerBoard_TransTask(void *argument)
 {
-//	SPITransHandler_t SPITransHandler;
-//	SPITransHandler.spiPort = &hspi1;
-//	SPITransHandler. SPIMODE = SPIMasterMode;
-//	SPITransHandler.readACKTimeOut = 50;
-//	SPITransHandler.readDataTimeOut = 100;
-//	SPITransHandler.SPITransDir = Master_writeDataTo_Slave;
 
 	/* Infinite loop */
 	for (;;)

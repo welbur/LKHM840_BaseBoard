@@ -274,7 +274,8 @@ uint8_t MSP_SPI_write(SPI_HandleTypeDef *spiHandle, uint8_t *txData, uint16_t tx
 {
 	for (uint16_t i = 0; i < txLen; i++)
 	{
-		if (HAL_SPI_Transmit_IT(spiHandle, (txData + i), 1) != HAL_OK)
+		if (HAL_SPI_Transmit(spiHandle, (txData + i), 1, 10) != HAL_OK)
+		//if (HAL_SPI_Transmit_IT(spiHandle, (txData + i), 1) != HAL_OK)
 			return 0;
 	}
 	return 1;
@@ -328,6 +329,11 @@ uint8_t MSP_SPI2_CS_STATUS()
  *         you can add your own implementation.
  * @retval None
  */
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	//LOGI("spi tx callback\r\n");
+	//sTxRxFlag = SpiTx_COMPLETE;
+}
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	//LOG("spi rx callback\r\n");

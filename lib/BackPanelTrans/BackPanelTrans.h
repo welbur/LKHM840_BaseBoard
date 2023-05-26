@@ -28,16 +28,19 @@ extern "C"
 
 typedef enum
 {
-	SPI_SLAVE_ACK 			= 0x53,
-	SPI_MASTER_ACK 			= 0xAC,
-	//SPI_MASTERWrite_ACK 	= 0xCA,
-	SPI_Trans_END 			= 0xED,
+	SPI_SLAVE_SYNBYTE			= 0x53,
+	SPI_MASTER_SYNBYTE 			= 0xAC,
+	SPI_ACK_BYTES             	= 0xED,
+	SPI_NACK_BYTES              = 0xDE
 }BackPanelTrans_ACK_TypeDef;
 
 typedef enum
 {
-	bpTrans_Init_Err 			= -7,
-	bpTrans_WaitCS_Err			= -6,
+	bpTrans_Init_Err 			= -10,
+	bpTrans_WaitCS_Err			= -9,
+	bpTrans_SPIIT_Err			= -8,
+	bpTrans_SYNC_TimeOut 		= -7,
+	bpTrans_SYNC_Err			= -6,
 	bpTrans_ACK_TimeOut 		= -5,
 	bpTrans_ACK_Err				= -4,
 	bpTrans_Data_TimeOut		= -3,
@@ -83,6 +86,8 @@ typedef struct
 #ifdef LKHM840PowerB
 	uint8_t				 	slaveBoardID;		//只有作为从模式的时候才会用到
 #endif
+	uint16_t				spiITTimeOut;
+	uint16_t				SYNCTimeOut;
 	uint16_t				waitCSTimeOut;
 	uint16_t				readACKTimeOut;
 	uint16_t				readDataTimeOut;
@@ -123,16 +128,19 @@ typedef struct
 
 
 BackPanelTransStatus_TypeDef BPTrans_Init(BackPanelTransHandler_t *bpTransH);
+BackPanelTransStatus_TypeDef waitSPISTATEready(void);
 BackPanelTransStatus_TypeDef BackPanel_WriteACK(BackPanelTrans_ACK_TypeDef ACKValue);
 BackPanelTransStatus_TypeDef BackPanel_ReadACK(BackPanelTrans_ACK_TypeDef ACKValue);
 BackPanelTransStatus_TypeDef BackPanel_WriteDATA_withPacket(const uint8_t numBytesIncl);
 BackPanelTransStatus_TypeDef BackPanel_readDATA_withPacket();
 
 #ifdef LKHM840PowerB
+BackPanelTransStatus_TypeDef Slave_Synchro(void);
 //BackPanelTransStatus_TypeDef waitSPI2CSequal(uint8_t cs_v);
 BackPanelTransStatus_TypeDef BackPanelTrans_Slave_writeDataTo_Master(uint8_t *writeData, uint16_t writeDataLen);
 BackPanelTransStatus_TypeDef BackPanelTrans_Slave_readDataFrom_Master(uint8_t *readData, uint16_t *readDataLen);
 #else
+BackPanelTransStatus_TypeDef Master_Synchro(void);
 BackPanelTransStatus_TypeDef BackPanelTrans_Master_readDataFrom_Slave(BoardID_TypeDef currentID, uint8_t *readData, uint16_t *readDataLen);
 BackPanelTransStatus_TypeDef BackPanelTrans_Master_writeDataTo_Slave(BoardID_TypeDef currentID, uint8_t *writeData, uint16_t writeDataLen);
 #endif

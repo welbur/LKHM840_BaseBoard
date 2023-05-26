@@ -228,6 +228,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		//Addto_osPrintf("Power board int 1..\r\n");
 		break;
 	case PowerBtoBaseB_INT2:
+		LOG("powerboard 1 int time : %ld\r\n", xTaskGetTickCount());
 		PowerBoard_Trig[PowerBoard_2] = 1;	//PowerBoardH[PowerBoard_2].isBoard_Rx_En = 1;
 		break;
 	case PowerBtoBaseB_INT3:
