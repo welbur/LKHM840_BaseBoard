@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../LKHM840_PowerBaord_noRTOS_uart_V003"
+		},
+		{
+			"path": "../../../LKHM200/code/LKHM_200_EtherCAT"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"co_sync.h": "c",
+			"canopen.h": "c",
+			"co_sdoserver.h": "c",
+			"co_driver_target.h": "c",
+			"co_app_stm32.h": "c",
+			"co_emergency.h": "c",
+			"co_gateway_ascii.h": "c",
+			"co_leds.h": "c",
+			"powerboardconfig.h": "c",
+			"atomic": "c",
+			"cstdint": "c",
+			"cstddef": "c"
+		}
+	}
+}
