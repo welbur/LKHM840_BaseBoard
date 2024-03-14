@@ -7,37 +7,29 @@
   ******************************************************************************
   * @attention      : LKHM840 BaseBoard
   *                   2023-05-20  V0.0.1
+  *                   2023-08-17  V0.0.4  改用自定义私有背板协议
   *
-  *       1、usart1用于接收PN板的modbus数据
-  *           PA9     ------> USART1_TX
-  *           PA10    ------> USART1_RX
-  *           BaudRate = 921600
-  *           
-  *       2、usart2用于扩展多个LKHM840模块，将usart1数据直接透传给下一个LKHM840
+  *       1、usart2用于接收PN板的modbus数据
   *           PA2     ------> USART2_TX
   *           PA3     ------> USART2_RX
   *           BaudRate = 921600
+  *           
+  *       2、usart1用于对接多个LKHM840_PowerBoard板。
+  *           PA9     ------> USART1_TX
+  *           PA10    ------> USART1_RX
+  *           BaudRate = 921600
+  * 
+  *       3、usart6用于对接多个LKHM840_PowerBoard板，备用
+  *           PA11     ------> USART6_TX
+  *           PA12     ------> USART6_RX
+  *           BaudRate = 921600  
   *     
   *       3、usart3用于打印测试信息
   *           PC10    ------> USART3_TX
   *           PC11    ------> USART3_RX
   *           BaudRate = 921600
   *           
-  *       4、spi1设置为主模式，用于跟slave板通讯
-  *           PA5     ------> SPI1_SCK
-  *           PA6     ------> SPI1_MISO
-  *           PA7     ------> SPI1_MOSI
-  *       5、CS信号、INT信号、WorkLed
-  *           PB4     ------> CS1       BaseBoard -->  PowerBoard
-  *           PB5     ------> CS2       BaseBoard -->  PowerBoard
-  *           PB6     ------> CS3       BaseBoard -->  PowerBoard
-  *           PB7     ------> CS4       BaseBoard -->  PowerBoard
-  *           
-  *           PC6     ------> INT1      PowerBoard --> BaseBoard
-  *           PC5     ------> INT2      PowerBoard --> BaseBoard
-  *           PC4     ------> INT3      PowerBoard --> BaseBoard
-  *           PC3     ------> INT4      PowerBoard --> BaseBoard
-  *           
+  *       
   *           PC0     ------> WorkLed
   ******************************************************************************
   */
